@@ -1,0 +1,15 @@
+{
+  "name": "root/music.local",
+  "type": "project",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Root\\MusicLocal\\": "src/"
+    }
+  },
+  "minimum-stability": "stable",
+  "require": {
+    "php": ">=8.4",
+    "wapmorgan/mp3info": "^0.1.1"
+  }
+}
