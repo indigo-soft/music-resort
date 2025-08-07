@@ -1,0 +1,15 @@
+#!/usr/bin/env php
+<?php
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Root\MusicLocal\Command\ResortMp3Command;
+use Symfony\Component\Console\Application;
+
+$application = new Application('MP3 Resort Tool', '1.0.0');
+$application->add(new ResortMp3Command());
+try {
+    $application->run();
+} catch (Exception $e) {
+    echo $e->getMessage();
+}
