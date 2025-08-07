@@ -26,3 +26,5 @@
 
 # new
 /vendor
+/.phpunit.cache
+/dest
