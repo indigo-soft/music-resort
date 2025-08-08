@@ -13,7 +13,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
-use Symfony\Component\String\Slugger\AsciiSlugger;
 
 #[AsCommand(
     name: 'mp3:resort',
@@ -103,8 +102,6 @@ final class ResortMp3Command extends Command
      */
     private function processFile(string $filePath, string $destinationDir, SymfonyStyle $io, bool $dryRun = false): void
     {
-        $slugger = new AsciiSlugger('en');
-
         // Read MP3 metadata
         $mp3Info = new getID3();
         $info = $mp3Info->analyze($filePath);
@@ -114,11 +111,9 @@ final class ResortMp3Command extends Command
         // Extract artist and title information
         $artist = $this->extractArtist($tags);
         $title = $this->extractTitle($tags);
-        $artist = $slugger->slug($artist, ' ');
-        $title = $slugger->slug($title, ' ');
 
         // Sanitize the artist name for folder creation
-        $artistFolder = $slugger->slug($this->sanitizeFolderName($artist), ' ');
+        $artistFolder = $this->sanitizeFolderName($artist);
         $artistPath = $destinationDir . DIRECTORY_SEPARATOR . $artistFolder;
 
         // Create an artist folder if it doesn't exist
@@ -176,7 +171,7 @@ final class ResortMp3Command extends Command
     private function extractArtistFromMultiple(string $artist): string
     {
         // Handle string with multiple artists separated by common delimiters
-        $separators = [';', ',', '/', '&', ' feat.', ' ft.', ' featuring'];
+        $separators = [';', ',', '/', '&', ' feat.', ' ft.', ' featuring', ' Featuring'];
 
         foreach ($separators as $separator) {
             if (str_contains($artist, $separator)) {
