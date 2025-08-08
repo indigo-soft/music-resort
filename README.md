@@ -105,7 +105,6 @@ php bin/console mp3:resort "/home/user/music/unsorted" "/home/user/music/sorted"
 ## Залежності
 
 - **PHP 8.4+** - мінімальна версія PHP
-- **wapmorgan/mp3info** — читання MP3 метаданих
 - **symfony/console** — консольний інтерфейс
 - **symfony/finder** — пошук файлів
 - **symfony/filesystem** — операції з файловою системою
