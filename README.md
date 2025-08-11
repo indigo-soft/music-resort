@@ -109,6 +109,14 @@ php bin/console mp3:resort "/home/user/music/unsorted" "/home/user/music/sorted"
 - **symfony/finder** — пошук файлів
 - **symfony/filesystem** — операції з файловою системою
 
+## Локалізація
+
+- Всі повідомлення локалізовані через глобальну функцію __() і файли перекладів у каталозі `lang` (напр.,
+  `lang/uk/console.php`).
+- Базова локаль за замовчуванням — `uk`.
+- Для зміни локалі на рівні коду можна викликати `\Root\MusicLocal\Service\LocalizationService::setLocale('uk')`.
+- Додавання нової мови: створіть директорію `lang/<locale>/` і файл перекладу `console.php` з тими ж ключами.
+
 ## Приклад виводу
 
 ### Звичайний режим:
@@ -133,16 +141,16 @@ MP3 File Resorting
 ### Режим симуляції (--dry-run):
 
 ```
- ! [NOTE] DRY-RUN MODE: No filesystem changes will be made
+ ! [NOTE] РЕЖИМ ПЕРЕВІРКИ (DRY-RUN): Зміни у файловій системі не вноситимуться
 
 MP3 File Resorting
 ==================
 
- ! [NOTE] Created artist folder: The Beatles
- ! [NOTE] Would move file: song1.mp3 -> The_Beatles/song1.mp3
+ ! [NOTE] Було б створено папку виконавця: The Beatles
+ ! [NOTE] Було б перенесено файл: song1.mp3 -> The_Beatles/song1.mp3
 
- ! [NOTE] Created artist folder: Queen
- ! [NOTE] Would move file: song2.mp3 -> Queen/song2.mp3
+ ! [NOTE] Було б створено папку виконавця: Queen
+ ! [NOTE] Було б перенесено файл: song2.mp3 -> Queen/song2.mp3
 
  ! [WARNING] Skipped file corrupted.mp3: No artist information found in metadata
 
@@ -179,7 +187,10 @@ php bin/console --version
 php bin/console list
 ```
 
-## Тестування
+## Тестування (планується)
+
+Наразі автотести відсутні у цьому репозиторії. Нижче описано плановану структуру та сценарії тестів, які можуть бути
+додані пізніше.
 
 Проєкт уключає повний набір тестів для забезпечення якості коду, написаних з використанням фреймворку Pest.
 
