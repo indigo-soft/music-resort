@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Root\MusicLocal\Service;
 
-use Symfony\Component\Console\Style\SymfonyStyle;
+use Root\MusicLocal\Component\ConsoleStyle;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
@@ -13,13 +13,13 @@ use Symfony\Component\Filesystem\Filesystem;
 final class FileResortService
 {
     private Filesystem $filesystem;
-    private SymfonyStyle $io;
+    private ConsoleStyle $io;
     private string $destinationDir;
     private bool $dryRun;
     private string $artist;
     private string $title;
 
-    public function __construct(SymfonyStyle $io, string $destinationDir, bool $dryRun, string $artist, string $title)
+    public function __construct(ConsoleStyle $io, string $destinationDir, bool $dryRun, string $artist, string $title)
     {
         $this->filesystem = new Filesystem();
         $this->io = $io;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Root\MusicLocal\Command;
 
+use Root\MusicLocal\Component\ConsoleStyle;
 use Root\MusicLocal\Service\ConfigService;
 use Root\MusicLocal\Service\Mp3ResortService;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -12,7 +13,6 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'mp3:resort',
@@ -38,7 +38,7 @@ final class ResortMp3Command extends Command
     /** @noinspection PhpUnused */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
+        $io = new ConsoleStyle($input, $output);
 
         $sourceDir = (string)$input->getArgument('source');
         $destinationDir = (string)$input->getArgument('destination');

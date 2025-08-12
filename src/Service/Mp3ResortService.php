@@ -6,8 +6,8 @@ namespace Root\MusicLocal\Service;
 
 use Exception;
 use getID3;
+use Root\MusicLocal\Component\ConsoleStyle;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 
@@ -15,10 +15,10 @@ final class Mp3ResortService
 {
     private string $sourceDir;
     private string $destinationDir;
-    private SymfonyStyle $io;
+    private ConsoleStyle $io;
     private bool $dryRun;
 
-    public function __construct(string $sourceDir, string $destinationDir, SymfonyStyle $io, bool $dryRun = false)
+    public function __construct(string $sourceDir, string $destinationDir, ConsoleStyle $io, bool $dryRun = false)
     {
         $this->sourceDir = $sourceDir;
         $this->destinationDir = $destinationDir;
