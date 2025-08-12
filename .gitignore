@@ -28,3 +28,8 @@
 /vendor
 /.phpunit.cache
 /dest
+/.env
+
+!/samples/.gitkeep
+!/samples/error-sample.mp3
+/samples

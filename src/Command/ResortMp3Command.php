@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Root\MusicLocal\Command;
 
+use Root\MusicLocal\Service\ConfigService;
 use Root\MusicLocal\Service\Mp3ResortService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -15,7 +16,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'mp3:resort',
-    description: 'Сортування MP3 за виконавцем у окремі папки'
+    description: 'Sort MP3 files by artist into separate folders'
 )]
 final class ResortMp3Command extends Command
 {
@@ -42,6 +43,10 @@ final class ResortMp3Command extends Command
         $sourceDir = (string)$input->getArgument('source');
         $destinationDir = (string)$input->getArgument('destination');
         $dryRun = (bool)$input->getOption('dry-run');
+        // If DEBUG is enabled in config, always force dry-run mode
+        if (ConfigService::bool('app.debug')) {
+            $dryRun = true;
+        }
 
         $service = new Mp3ResortService($sourceDir, $destinationDir, $io, $dryRun);
         $result = $service->resort();

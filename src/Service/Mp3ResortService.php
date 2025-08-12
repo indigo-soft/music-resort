@@ -98,7 +98,8 @@ final class Mp3ResortService
     private function prepareFinder(): Finder
     {
         $finder = new Finder();
-        $finder->files()->in($this->sourceDir)->name('*.mp3');
+        $finder->files()->in($this->sourceDir)->name(['*.mp3', '*.flac', '*.m4a']);
+
         return $finder;
     }
 
@@ -246,8 +247,10 @@ final class Mp3ResortService
     {
         match (true) {
             !array_key_exists('tags', $info) => throw new Exception(__('console.error.no_tags')),
-            array_key_exists('id3v2', $info['tags']) => $tags = $info['tags']['id3v2'],
-            array_key_exists('id3v1', $info['tags']) => $tags = $info['tags']['id3v1'],
+            array_key_exists('id3v2', $info['tags']) => $tags = $info['tags']['id3v2'], // mp3 new
+            array_key_exists('id3v1', $info['tags']) => $tags = $info['tags']['id3v1'], // mp3 old
+            array_key_exists('quicktime', $info['tags']) => $tags = $info['tags']['quicktime'], // m4a
+            array_key_exists('vorbiscomment', $info['tags']) => $tags = $info['tags']['vorbiscomment'], // flac
             default => throw new Exception(__('console.error.no_id3')),
         };
 
