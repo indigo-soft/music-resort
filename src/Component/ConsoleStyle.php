@@ -49,7 +49,7 @@ class ConsoleStyle extends OutputStyle
     )
     {
         $this->bufferedOutput = new TrimmedBufferOutput(DIRECTORY_SEPARATOR === '\\' ? 4 : 2, $output->getVerbosity(), false, clone $output->getFormatter());
-        // Windows cmd wraps lines as soon as the terminal width is reached, whether there are following chars or not.
+        // Windows cmd wraps lines as soon as the terminal width is reached, whether there are the following chars or not.
         $width = new Terminal()->getWidth() ?: self::MAX_LINE_LENGTH;
         $this->lineLength = min($width - (int)(DIRECTORY_SEPARATOR === '\\'), self::MAX_LINE_LENGTH);
 
@@ -79,7 +79,9 @@ class ConsoleStyle extends OutputStyle
         $this->newLine();
     }
 
-    /** @noinspection PhpInternalEntityUsedInspection */
+    /** @noinspection PhpInternalEntityUsedInspection
+     * @noinspection PhpUnused
+     */
     public function section(string $message): void
     {
         $this->autoPrependBlock();
@@ -90,6 +92,11 @@ class ConsoleStyle extends OutputStyle
         $this->newLine();
     }
 
+    /**
+     * @param array $elements
+     * @return void
+     * @noinspection PhpUnused
+     */
     public function listing(array $elements): void
     {
         $this->autoPrependText();
@@ -99,6 +106,11 @@ class ConsoleStyle extends OutputStyle
         $this->newLine();
     }
 
+    /**
+     * @param string|array $message
+     * @return void
+     * @noinspection PhpUnused
+     */
     public function text(string|array $message): void
     {
         $this->autoPrependText();
@@ -111,27 +123,44 @@ class ConsoleStyle extends OutputStyle
 
     /**
      * Formats a command comment.
+     * @noinspection PhpUnused
      */
     public function comment(string|array $message): void
     {
         $this->block($message, null, null, '<fg=default;bg=default> // </>', false, false);
     }
 
+    /**
+     * @param string|array $message
+     * @return void
+     */
     public function success(string|array $message): void
     {
         $this->block($message, 'OK', 'fg=black;bg=green', ' ', true);
     }
 
+    /**
+     * @param string|array $message
+     * @return void
+     */
     public function error(string|array $message): void
     {
         $this->block($message, 'ERROR', 'fg=white;bg=red', ' ', true);
     }
 
+    /**
+     * @param string|array $message
+     * @return void
+     */
     public function warning(string|array $message): void
     {
         $this->block($message, 'WARNING', 'fg=black;bg=magenta', ' ', true);
     }
 
+    /**
+     * @param string|array $message
+     * @return void
+     */
     public function note(string|array $message): void
     {
         $this->block($message, 'NOTE', 'fg=yellow');
@@ -145,11 +174,22 @@ class ConsoleStyle extends OutputStyle
         $this->block($message, 'INFO', 'fg=green', ' ', true);
     }
 
+    /**
+     * @param string|array $message
+     * @return void
+     * @noinspection PhpUnused
+     */
     public function caution(string|array $message): void
     {
         $this->block($message, 'CAUTION', 'fg=white;bg=red', ' ! ', true);
     }
 
+    /**
+     * @param array $headers
+     * @param array $rows
+     * @return void
+     * @noinspection PhpUnused
+     */
     public function table(array $headers, array $rows): void
     {
         $this->createTable()
@@ -160,6 +200,13 @@ class ConsoleStyle extends OutputStyle
         $this->newLine();
     }
 
+    /**
+     * @param string $question
+     * @param string|null $default
+     * @param callable|null $validator
+     * @return mixed
+     * @noinspection PhpUnused
+     */
     public function ask(string $question, ?string $default = null, ?callable $validator = null): mixed
     {
         $question = new Question($question, $default);
@@ -168,6 +215,12 @@ class ConsoleStyle extends OutputStyle
         return $this->askQuestion($question);
     }
 
+    /**
+     * @param string $question
+     * @param callable|null $validator
+     * @return mixed
+     * @noinspection PhpUnused
+     */
     public function askHidden(string $question, ?callable $validator = null): mixed
     {
         $question = new Question($question);
@@ -178,11 +231,25 @@ class ConsoleStyle extends OutputStyle
         return $this->askQuestion($question);
     }
 
+    /**
+     * @param string $question
+     * @param bool $default
+     * @return bool
+     * @noinspection PhpUnused
+     */
     public function confirm(string $question, bool $default = true): bool
     {
         return $this->askQuestion(new ConfirmationQuestion($question, $default));
     }
 
+    /**
+     * @param string $question
+     * @param array $choices
+     * @param mixed|null $default
+     * @param bool $multiSelect
+     * @return mixed
+     * @noinspection PhpUnused
+     */
     public function choice(string $question, array $choices, mixed $default = null, bool $multiSelect = false): mixed
     {
         if (null !== $default) {
@@ -196,6 +263,10 @@ class ConsoleStyle extends OutputStyle
         return $this->askQuestion($questionChoice);
     }
 
+    /**
+     * @param int $max
+     * @return void
+     */
     public function progressStart(int $max = 0): void
     {
         $this->progressBar = $this->createProgressBar($max);
@@ -203,6 +274,10 @@ class ConsoleStyle extends OutputStyle
         $this->newLine(2);
     }
 
+    /**
+     * @param int $step
+     * @return void
+     */
     public function progressAdvance(int $step = 1): void
     {
         $this->newLine();
@@ -210,6 +285,9 @@ class ConsoleStyle extends OutputStyle
         $this->newLine(2);
     }
 
+    /**
+     * @return void
+     */
     public function progressFinish(): void
     {
         $this->getProgressBar()->finish();
@@ -217,6 +295,10 @@ class ConsoleStyle extends OutputStyle
         unset($this->progressBar);
     }
 
+    /**
+     * @param int $max
+     * @return ProgressBar
+     */
     public function createProgressBar(int $max = 0): ProgressBar
     {
         $progressBar = parent::createProgressBar($max);
@@ -254,6 +336,11 @@ class ConsoleStyle extends OutputStyle
         return $answer;
     }
 
+    /**
+     * @param string|iterable $messages
+     * @param int $type
+     * @return void
+     */
     public function writeln(string|iterable $messages, int $type = self::OUTPUT_NORMAL): void
     {
         if (!is_iterable($messages)) {
@@ -266,6 +353,13 @@ class ConsoleStyle extends OutputStyle
         }
     }
 
+    /**
+     * @param string|iterable $messages
+     * @param bool $newline
+     * @param int $type
+     * @return void
+     * @noinspection PhpUnused
+     */
     public function write(string|iterable $messages, bool $newline = false, int $type = self::OUTPUT_NORMAL): void
     {
         if (!is_iterable($messages)) {
@@ -278,12 +372,19 @@ class ConsoleStyle extends OutputStyle
         }
     }
 
+    /**
+     * @param int $count
+     * @return void
+     */
     public function newLine(int $count = 1): void
     {
         parent::newLine($count);
         $this->bufferedOutput->write(str_repeat("\n", $count));
     }
 
+    /**
+     * @return Table
+     */
     public function createTable(): Table
     {
         $output = $this->output instanceof ConsoleOutputInterface ? $this->output->section() : $this->output;
@@ -293,6 +394,9 @@ class ConsoleStyle extends OutputStyle
         return new Table($output)->setStyle($style);
     }
 
+    /**
+     * @return ProgressBar
+     */
     private function getProgressBar(): ProgressBar
     {
         return $this->progressBar
@@ -301,6 +405,7 @@ class ConsoleStyle extends OutputStyle
 
     /**
      * @param iterable<string, iterable|string|TreeNode> $nodes
+     * @noinspection PhpUnused
      */
     public function tree(iterable $nodes, string $root = ''): void
     {
@@ -317,6 +422,9 @@ class ConsoleStyle extends OutputStyle
         return TreeHelper::createTree($output, $root, $nodes, TreeStyle::default());
     }
 
+    /**
+     * @return void
+     */
     private function autoPrependBlock(): void
     {
         $chars = substr(str_replace(PHP_EOL, "\n", $this->bufferedOutput->fetch()), -2);
@@ -325,10 +433,13 @@ class ConsoleStyle extends OutputStyle
             $this->newLine(); // empty history, so we should start with a new line.
             return;
         }
-        // Prepend new line for each non LF chars (This means no blank line was output before)
+        // Prepend a new line for each non-LF char (This means no blank line was output before)
         $this->newLine(2 - substr_count($chars, "\n"));
     }
 
+    /**
+     * @return void
+     */
     private function autoPrependText(): void
     {
         $fetched = $this->bufferedOutput->fetch();
@@ -338,12 +449,27 @@ class ConsoleStyle extends OutputStyle
         }
     }
 
+    /**
+     * @param string $message
+     * @param bool $newLine
+     * @param int $type
+     * @return void
+     */
     private function writeBuffer(string $message, bool $newLine, int $type): void
     {
         // We need to know if the last chars are PHP_EOL
         $this->bufferedOutput->write($message, $newLine, $type);
     }
 
+    /**
+     * @param Countable|iterable $messages
+     * @param string|null $type
+     * @param string|null $style
+     * @param string $prefix
+     * @param bool $padding
+     * @param bool $escape
+     * @return array
+     */
     private function createBlock(Countable|iterable $messages, ?string $type = null, ?string $style = null, string $prefix = ' ', bool $padding = false, bool $escape = false): array
     {
         $indentLength = 0;

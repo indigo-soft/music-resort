@@ -18,6 +18,12 @@ final class Mp3ResortService
     private ConsoleStyle $io;
     private bool $dryRun;
 
+    /**
+     * @param string $sourceDir
+     * @param string $destinationDir
+     * @param ConsoleStyle $io
+     * @param bool $dryRun
+     */
     public function __construct(string $sourceDir, string $destinationDir, ConsoleStyle $io, bool $dryRun = false)
     {
         $this->sourceDir = $sourceDir;
@@ -27,7 +33,7 @@ final class Mp3ResortService
     }
 
     /**
-     * Виконує сортування MP3-файлів відносно директорій.
+     * Performs sorting of MP3 files into directories.
      *
      * @return array{status:int, processed:int, errors:int}
      */
@@ -43,7 +49,7 @@ final class Mp3ResortService
             ];
         }
 
-        // Створити цільову директорію, якщо вона не існує
+        // Create the destination directory if it does not exist
         $this->ensureDestinationDirectory();
 
         $finder = $this->prepareFinder();
@@ -57,6 +63,9 @@ final class Mp3ResortService
         return $this->buildResult($processedCount, $errorCount);
     }
 
+    /**
+     * @return void
+     */
     private function ensureDestinationDirectory(): void
     {
         $fs = new Filesystem();
@@ -162,7 +171,7 @@ final class Mp3ResortService
         }
         if (isset($info['warning']) && $info['warning']) {
             $warnings = is_array($info['warning']) ? implode('; ', $info['warning']) : (string)$info['warning'];
-            // Treat warnings as non-fatal? For reliability, we escalate to exception so file is skipped with reason
+            // Treat warnings as non-fatal? For reliability, we escalate to exception so a file is skipped with reason
             throw new Exception($warnings);
         }
 
@@ -223,7 +232,7 @@ final class Mp3ResortService
     private function extractFirstArtist(string $artist): string
     {
         // Case-insensitive split by common separators and "feat/ft/featuring" variants
-        // Keep original casing for the returned substring.
+        // Keep the original casing for the returned substring.
         $pattern = '/\s*(?:;|,|\/|&|\s+feat\.?|\s+ft\.?|\s+featuring)\s*/i';
         $parts = preg_split($pattern, $artist, -1, PREG_SPLIT_NO_EMPTY);
         if (is_array($parts) && isset($parts[0])) {
@@ -252,7 +261,7 @@ final class Mp3ResortService
                 }
 
                 if (!is_string($title)) {
-                    break; // fall through to generic error below
+                    break; // fall through to the generic error below
                 }
 
                 $title = trim($title);

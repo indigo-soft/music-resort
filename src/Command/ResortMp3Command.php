@@ -43,6 +43,7 @@ final class ResortMp3Command extends Command
         $sourceDir = (string)$input->getArgument('source');
         $destinationDir = (string)$input->getArgument('destination');
         $dryRun = (bool)$input->getOption('dry-run');
+
         // If DEBUG is enabled in config, always force dry-run mode
         if (ConfigService::get('app.debug')) {
             $dryRun = true;

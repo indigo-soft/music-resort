@@ -69,7 +69,7 @@ final class FileResortService
      */
     private function buildFileName(string $artist, string $title): string
     {
-        $raw = $artist . ' - ' . $title . '.mp3';
+        $raw = $artist . ' - ' . $title;
         return $this->sanitizeFileName($raw);
     }
 
@@ -96,7 +96,7 @@ final class FileResortService
      */
     private function getUniqueDestinationPath(string $originalDestination): string
     {
-        // Обчислюємо складник шляху один раз
+        // Compute the path components at once
         $pathInfo = pathinfo($originalDestination);
         $dir = $pathInfo['dirname'] ?? '';
         $filename = $pathInfo['filename'] ?? ($pathInfo['basename'] ?? 'file');
@@ -105,7 +105,7 @@ final class FileResortService
         $destinationPath = $originalDestination;
         $counter = 1;
 
-        // Уніфікована перевірка існування (без розгалуження по dryRun)
+        // Unified existence check (no branching by dryRun)
         while ($this->filesystem->exists($destinationPath)) {
             $destinationPath = $dir . DIRECTORY_SEPARATOR . $filename . '_' . $counter . $ext;
             $counter++;
@@ -130,23 +130,23 @@ final class FileResortService
     }
 
     /**
-     * Санітизація імені файлу (Windows/Linux/MacOS без заборонених символів)
+     * Sanitize file name (Windows/Linux/macOS without forbidden characters)
      */
     private function sanitizeFileName(string $name): string
     {
-        // Заборонені символи для Windows + коса риска та зворотна риска
+        // Forbidden characters for Windows + forward slash and backslash
         $invalid = ['<', '>', ':', '"', '|', '?', '*', '/', '\\'];
-        // Замінюємо заборонені на підкреслення
+        // Replace forbidden characters with underscores
         $sanitized = str_replace($invalid, '_', $name);
-        // Прибираємо ті що керують символами й нормалізуємо пробіли
+        // Remove control characters and normalize spaces
         $sanitized = preg_replace('/[\x00-\x1F\x7F]+/u', '', $sanitized) ?? '';
         $sanitized = preg_replace('/\s+/', ' ', $sanitized) ?? '';
         $sanitized = trim($sanitized, " .");
-        // Обмежуємо довжину (щоб не ризикувати з MAX_PATH у Windows при глибоких шляхах)
+        // Limit length (to avoid MAX_PATH issues on Windows with deep paths)
         if (strlen($sanitized) > 150) {
             $sanitized = substr($sanitized, 0, 150);
         }
-        // Гарантуємо хоча б якесь ім'я
+        // Ensure we have at least some name
         return $sanitized !== '' ? $sanitized : __('console.fallback.unknown_file_name');
     }
 }

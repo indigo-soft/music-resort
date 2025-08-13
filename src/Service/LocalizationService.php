@@ -11,19 +11,22 @@ final class LocalizationService
     /** @var array<string, array<string, mixed>> */
     private static array $cache = [];
 
+    /**
+     * @param string $locale
+     * @return void
+     */
     public static function setLocale(string $locale): void
     {
         self::$locale = $locale;
     }
 
+    /**
+     * @return string
+     * @noinspection PhpUnused
+     */
     public static function getLocale(): string
     {
         return self::$locale;
-    }
-
-    public static function setBasePath(string $path): void
-    {
-        self::$basePath = rtrim($path, DIRECTORY_SEPARATOR);
     }
 
     /**
@@ -46,11 +49,15 @@ final class LocalizationService
         return self::makeReplacements($value, $replace);
     }
 
+    /**
+     * @param string $key
+     * @return array|string[]
+     */
     private static function splitKey(string $key): array
     {
         $pos = strpos($key, '.');
         if ($pos === false) {
-            // default file is 'console'
+            // the default file is 'console'
             return ['console', $key];
         }
         return [substr($key, 0, $pos), substr($key, $pos + 1)];
@@ -61,7 +68,7 @@ final class LocalizationService
      */
     private static function loadFile(string $file, string $locale): array
     {
-        // default base is project_root/lang
+        // the default base is project_root/lang
         $base = self::$basePath ?? dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'lang';
         $cacheKey = $locale . ':' . $file;
         if (isset(self::$cache[$cacheKey])) {
@@ -100,6 +107,11 @@ final class LocalizationService
         return $array;
     }
 
+    /**
+     * @param string $line
+     * @param array $replace
+     * @return string
+     */
     private static function makeReplacements(string $line, array $replace): string
     {
         if ($replace === []) {

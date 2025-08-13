@@ -199,6 +199,7 @@ final class ConfigService
      * @param string|int|null $raw
      * @param bool $default
      * @return bool
+     * @noinspection PhpUnused
      */
     private static function castBool(string|int|null $raw, bool $default): bool
     {
@@ -218,6 +219,7 @@ final class ConfigService
      * @param string|int|null $raw
      * @param int $default
      * @return int
+     * @noinspection PhpUnused
      */
     private static function castInt(string|int|null $raw, int $default): int
     {
@@ -234,6 +236,7 @@ final class ConfigService
      * @param string|int|null $raw
      * @param string $default
      * @return string
+     * @noinspection PhpUnused
      */
     private static function castString(string|int|null $raw, string $default): string
     {
