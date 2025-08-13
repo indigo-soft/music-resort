@@ -8,7 +8,7 @@ use Root\MusicLocal\Component\ConsoleStyle;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
- *  Fylesystem Service
+ *  Filesystem Service
  */
 final class FileResortService
 {
@@ -84,6 +84,7 @@ final class FileResortService
     {
         if (!$this->dryRun) {
             $this->filesystem->rename($filePath, $destinationPath);
+            $this->io->info(__('console.info.moved', ['file' => $fileName, 'dest' => $artistFolder . DIRECTORY_SEPARATOR . basename($destinationPath)]));
         } else {
             $this->io->note(__('console.note.dry_moved', ['file' => $fileName, 'dest' => $artistFolder . DIRECTORY_SEPARATOR . basename($destinationPath)]));
         }

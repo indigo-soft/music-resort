@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Root\MusicLocal\Service;
 
+use Root\MusicLocal\Exception\ConfigException;
+
 final class ConfigService
 {
     private static array $config = [];
@@ -31,7 +33,7 @@ final class ConfigService
 
         if (is_file($appConfigFile)) {
             /** @var array $appCfgRaw */
-            $appCfgRaw = include $appConfigFile;
+            $appCfgRaw = require_once $appConfigFile;
 
             if (is_array($appCfgRaw)) {
                 self::$config['app'] = self::resolveAppConfig($appCfgRaw);
@@ -44,37 +46,41 @@ final class ConfigService
     /**
      * Get config value by dot notation, e.g. get('app.debug', false)
      * @param string $key
-     * @param int|string|bool|null $default
-     * @return int|string|bool|null
+     * @return int|string|bool
      */
-    public static function get(string $key, int|string|bool|null $default = null): int|string|bool|null
+    public static function get(string $key): int|string|bool
     {
-        $segments = explode('.', $key);
-        $current = self::$config;
+        [$configKey, $paramKey] = explode('.', $key);
+        $config = self::$config;
 
-        foreach ($segments as $segment) {
-            if (is_array($current) && array_key_exists($segment, $current)) {
-                $current = $current[$segment];
-            } else {
-                return $default;
-            }
+        if (array_key_exists($configKey, $config) === false) {
+            throw new ConfigException('Config section: ' . $configKey . ' does not exist.');
         }
 
-        return $current;
+        if (array_key_exists($key, $config[$configKey])) {
+            throw new ConfigException('Config parametr: ' . $paramKey . ' does not exist.');
+        }
+
+        return $config[$configKey][$paramKey];
     }
 
     /**
      * Read env value (from loaded .env or existing environment), with optional default.
+     * @param string $key
+     * @return string|bool|int
      */
-    public static function env(string $key, ?string $default = null): ?string
+    private static function env(string $key): string|bool|int
     {
         if (array_key_exists($key, self::$env)) {
             return self::$env[$key];
         }
-        $val = $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key);
-        if ($val === false || $val === null) {
-            return $default;
-        }
+
+        $val = match (true) {
+            filter_has_var(INPUT_ENV, $key) => filter_input(INPUT_ENV, $key, FILTER_SANITIZE_SPECIAL_CHARS),
+            filter_has_var(INPUT_SERVER, $key) => filter_input(INPUT_SERVER, $key, FILTER_SANITIZE_SPECIAL_CHARS),
+            default => getenv($key)
+        };
+
         return (string)$val;
     }
 
@@ -149,6 +155,7 @@ final class ConfigService
     {
         $resolved = [];
         foreach ($raw as $key => $definition) {
+
             if (is_array($definition)) {
                 $envName = $definition['name'] ?? $definition['env'] ?? null;
                 $type = strtolower((string)($definition['type'] ?? 'string'));
@@ -159,6 +166,7 @@ final class ConfigService
                     $resolved[$key] = self::castValue($type, null, $default);
                     continue;
                 }
+
                 $rawValue = self::env($envName);
                 $resolved[$key] = self::castValue($type, $rawValue, $default);
             } else {
@@ -166,13 +174,18 @@ final class ConfigService
                 $resolved[$key] = $definition;
             }
         }
+
         return $resolved;
     }
 
     /**
      * Cast raw env string to requested type with default fallback.
+     * @param string $type
+     * @param string|null $raw
+     * @param string|int|bool $default
+     * @return string|int|bool
      */
-    private static function castValue(string $type, ?string $raw, mixed $default): mixed
+    private static function castValue(string $type, ?string $raw, string|int|bool $default): string|int|bool
     {
         $type = strtolower($type);
         return match ($type) {
@@ -183,31 +196,30 @@ final class ConfigService
     }
 
     /**
-     * @param string|null $raw
+     * @param string|int|null $raw
      * @param bool $default
      * @return bool
      */
-    private static function castBool(?string $raw, bool $default): bool
+    private static function castBool(string|int|null $raw, bool $default): bool
     {
         if ($raw === null) {
             return $default;
         }
+
         $lower = strtolower(trim($raw));
-        if (in_array($lower, ['1', 'true', 'yes', 'on'], true)) {
-            return true;
-        }
-        if (in_array($lower, ['0', 'false', 'no', 'off'], true)) {
-            return false;
-        }
-        return $default;
+        return match (true) {
+            in_array($lower, [1, '1', 'true', 'yes', 'on'], true) => true,
+            in_array($lower, [0, '0', 'false', 'no', 'off'], true) => false,
+            default => $default,
+        };
     }
 
     /**
-     * @param string|null $raw
+     * @param string|int|null $raw
      * @param int $default
      * @return int
      */
-    private static function castInt(?string $raw, int $default): int
+    private static function castInt(string|int|null $raw, int $default): int
     {
         if ($raw === null || $raw === '') {
             return $default;
@@ -219,32 +231,15 @@ final class ConfigService
     }
 
     /**
-     * @param string|null $raw
+     * @param string|int|null $raw
      * @param string $default
      * @return string
      */
-    private static function castString(?string $raw, string $default): string
+    private static function castString(string|int|null $raw, string $default): string
     {
         if ($raw === null) {
             return $default;
         }
         return (string)$raw;
-    }
-
-    /** Small helpers for typed config values */
-    public static function bool(string $key, bool $default = false): bool
-    {
-        $val = self::get($key);
-        if (is_bool($val)) {
-            return $val;
-        }
-        if (is_string($val)) {
-            $lower = strtolower($val);
-            return in_array($lower, ['1', 'true', 'yes', 'on'], true) || ((!in_array($lower, ['0', 'false', 'no', 'off'], true) && $default));
-        }
-        if (is_numeric($val)) {
-            return ((int)$val) !== 0;
-        }
-        return $default;
     }
 }

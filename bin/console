@@ -13,7 +13,7 @@ use Symfony\Component\Console\Application;
 
 // Initialize configuration and localization
 ConfigService::init(dirname(__DIR__));
-LocalizationService::setLocale((string)(ConfigService::get('app.default_lang', 'en')));
+LocalizationService::setLocale(ConfigService::get('app.default_lang'));
 
 $application = new Application('MP3 Resort Tool', '1.0.0');
 $application->add(new ResortMp3Command());

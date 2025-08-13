@@ -45,6 +45,7 @@ return [
 
     'info' => [
         'dir_created' => 'Created destination directory: :path',
+        'moved' => 'Moved file: :file -> :dest',
     ],
 
     'note' => [

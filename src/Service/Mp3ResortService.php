@@ -155,9 +155,26 @@ final class Mp3ResortService
         $mp3Info = new getID3();
         $info = $mp3Info->analyze($filePath);
 
+        // Handle getID3 reported errors/warnings explicitly
+        if (isset($info['error']) && $info['error']) {
+            $errors = is_array($info['error']) ? implode('; ', $info['error']) : (string)$info['error'];
+            throw new Exception($errors);
+        }
+        if (isset($info['warning']) && $info['warning']) {
+            $warnings = is_array($info['warning']) ? implode('; ', $info['warning']) : (string)$info['warning'];
+            // Treat warnings as non-fatal? For reliability, we escalate to exception so file is skipped with reason
+            throw new Exception($warnings);
+        }
+
         $tags = $this->extractTags($info);
         $artist = $this->extractArtist($tags);
+        if (trim($artist) === '') {
+            throw new Exception(__('console.error.no_artist'));
+        }
         $title = $this->extractTitle($tags);
+        if (trim($title) === '') {
+            throw new Exception(__('console.error.no_title'));
+        }
 
         $fileService = new FileResortService($this->io, $this->destinationDir, $this->dryRun, $artist, $title);
         $fileService->moveToArtistFolder($filePath);
@@ -205,16 +222,16 @@ final class Mp3ResortService
      */
     private function extractFirstArtist(string $artist): string
     {
-        // Handle string with multiple artists separated by common delimiters
-        $separators = [';', ',', '/', '&', ' feat.', ' ft.', ' featuring', ' Featuring'];
-
-        foreach ($separators as $separator) {
-            if (str_contains($artist, $separator)) {
-                $artists = explode($separator, $artist);
-                return trim($artists[0]);
+        // Case-insensitive split by common separators and "feat/ft/featuring" variants
+        // Keep original casing for the returned substring.
+        $pattern = '/\s*(?:;|,|\/|&|\s+feat\.?|\s+ft\.?|\s+featuring)\s*/i';
+        $parts = preg_split($pattern, $artist, -1, PREG_SPLIT_NO_EMPTY);
+        if (is_array($parts) && isset($parts[0])) {
+            $first = trim($parts[0]);
+            if ($first !== '') {
+                return $first;
             }
         }
-
         return trim($artist);
     }
 
@@ -223,14 +240,27 @@ final class Mp3ResortService
      */
     private function extractTitle(array $tags): string
     {
-        // Try different tag fields for artist information
+        // Try different tag fields for title information (can extend if needed)
         $titleFields = ['title'];
 
         foreach ($titleFields as $field) {
             if (!empty($tags[$field])) {
                 $title = $tags[$field];
 
-                return trim($title[0]);
+                if (is_array($title)) {
+                    $title = $title[0] ?? '';
+                }
+
+                if (!is_string($title)) {
+                    break; // fall through to generic error below
+                }
+
+                $title = trim($title);
+                if ($title === '') {
+                    break; // fall through
+                }
+
+                return $title;
             }
         }
 

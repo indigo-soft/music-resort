@@ -45,6 +45,7 @@ return [
 
     'info' => [
         'dir_created' => 'Створено цільову директорію: :path',
+        'moved' => 'Переміщено файл: :file -> :dest',
     ],
 
     'note' => [
