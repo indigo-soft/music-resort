@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PhpEntryPointsManager">
+    <entry_point>
+      <entry_point TYPE="phpMethod" FQNAME="\Root\MusicLocal\Service\FileResortService __construct" />
+      <entry_point TYPE="phpClass" FQNAME="\Root\MusicLocal\Service\FileResortService" />
+      <entry_point TYPE="phpMethod" FQNAME="\Root\MusicLocal\Service\Mp3ResortService __construct" />
+      <entry_point TYPE="phpClass" FQNAME="\Root\MusicLocal\Service\Mp3ResortService" />
+    </entry_point>
+    <pattern value="\Root\MusicLocal\Service\FileResortService" member="__construct" />
+    <pattern value="\Root\MusicLocal\Service\FileResortService" />
+    <pattern value="\Root\MusicLocal\Service\Mp3ResortService" member="__construct" />
+    <pattern value="\Root\MusicLocal\Service\Mp3ResortService" />
+  </component>
+</project>

@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace Root\MusicLocal\Service;
 
 use Exception;
-use getID3;
 use Root\MusicLocal\Component\ConsoleStyle;
+use Root\MusicLocal\Exception\MusicMetadataException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 
 final class Mp3ResortService
 {
+    private MusicMetadataService $musicMetadataService;
     private string $sourceDir;
     private string $destinationDir;
     private ConsoleStyle $io;
@@ -26,6 +27,7 @@ final class Mp3ResortService
      */
     public function __construct(string $sourceDir, string $destinationDir, ConsoleStyle $io, bool $dryRun = false)
     {
+        $this->musicMetadataService = new MusicMetadataService();
         $this->sourceDir = $sourceDir;
         $this->destinationDir = $destinationDir;
         $this->io = $io;
@@ -157,32 +159,22 @@ final class Mp3ResortService
     /**
      * @param string $filePath
      * @return void
-     * @throws Exception
+     * @throws MusicMetadataException|Exception
      */
     private function processSingleFile(string $filePath): void
     {
-        $mp3Info = new getID3();
-        $info = $mp3Info->analyze($filePath);
+        $info = $this->musicMetadataService->getMetadata($filePath);
+        $tags = $this->musicMetadataService->extractTags($info);
+        $artists = $this->musicMetadataService->extractArtist($tags);
+        $artist = $this->extractFirstArtist($artists);
+        $title = $this->musicMetadataService->extractTitle($tags);
 
-        // Handle getID3 reported errors/warnings explicitly
-        if (isset($info['error']) && $info['error']) {
-            $errors = is_array($info['error']) ? implode('; ', $info['error']) : (string)$info['error'];
-            throw new Exception($errors);
-        }
-        if (isset($info['warning']) && $info['warning']) {
-            $warnings = is_array($info['warning']) ? implode('; ', $info['warning']) : (string)$info['warning'];
-            // Treat warnings as non-fatal? For reliability, we escalate to exception so a file is skipped with reason
-            throw new Exception($warnings);
-        }
-
-        $tags = $this->extractTags($info);
-        $artist = $this->extractArtist($tags);
         if (trim($artist) === '') {
-            throw new Exception(__('console.error.no_artist'));
+            throw new MusicMetadataException(__('console.error.no_artist'));
         }
-        $title = $this->extractTitle($tags);
+
         if (trim($title) === '') {
-            throw new Exception(__('console.error.no_title'));
+            throw new MusicMetadataException(__('console.error.no_title'));
         }
 
         $fileService = new FileResortService($this->io, $this->destinationDir, $this->dryRun, $artist, $title);
@@ -199,30 +191,6 @@ final class Mp3ResortService
             'processed' => $processed,
             'errors' => $errors,
         ];
-    }
-
-
-    /**
-     * @throws Exception
-     */
-    private function extractArtist(array $tags): string
-    {
-        // Try different tag fields for artist information
-        $artistFields = ['artist', 'albumartist', 'band', 'performer'];
-
-        foreach ($artistFields as $field) {
-            if (!empty($tags[$field])) {
-                $artist = $tags[$field];
-
-                if (is_array($artist)) {
-                    $artist = $artist[0];
-                }
-
-                return $this->extractFirstArtist($artist);
-            }
-        }
-
-        throw new Exception(__('console.error.no_artist'));
     }
 
     /**
@@ -242,57 +210,5 @@ final class Mp3ResortService
             }
         }
         return trim($artist);
-    }
-
-    /**
-     * @throws Exception
-     */
-    private function extractTitle(array $tags): string
-    {
-        // Try different tag fields for title information (can extend if needed)
-        $titleFields = ['title'];
-
-        foreach ($titleFields as $field) {
-            if (!empty($tags[$field])) {
-                $title = $tags[$field];
-
-                if (is_array($title)) {
-                    $title = $title[0] ?? '';
-                }
-
-                if (!is_string($title)) {
-                    break; // fall through to the generic error below
-                }
-
-                $title = trim($title);
-                if ($title === '') {
-                    break; // fall through
-                }
-
-                return $title;
-            }
-        }
-
-        throw new Exception(__('console.error.no_title'));
-    }
-
-
-    /**
-     * @param array $info
-     * @return array
-     * @throws Exception
-     */
-    private function extractTags(array $info): array
-    {
-        match (true) {
-            !array_key_exists('tags', $info) => throw new Exception(__('console.error.no_tags')),
-            array_key_exists('id3v2', $info['tags']) => $tags = $info['tags']['id3v2'], // mp3 new
-            array_key_exists('id3v1', $info['tags']) => $tags = $info['tags']['id3v1'], // mp3 old
-            array_key_exists('quicktime', $info['tags']) => $tags = $info['tags']['quicktime'], // m4a
-            array_key_exists('vorbiscomment', $info['tags']) => $tags = $info['tags']['vorbiscomment'], // flac
-            default => throw new Exception(__('console.error.no_id3')),
-        };
-
-        return $tags;
     }
 }
