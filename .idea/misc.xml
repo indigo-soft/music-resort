@@ -4,12 +4,20 @@
     <entry_point>
       <entry_point TYPE="phpMethod" FQNAME="\Root\MusicLocal\Service\FileResortService __construct" />
       <entry_point TYPE="phpClass" FQNAME="\Root\MusicLocal\Service\FileResortService" />
+      <entry_point TYPE="phpMethod" FQNAME="\Root\MusicLocal\Service\Mp3DeduplicateService __construct" />
+      <entry_point TYPE="phpClass" FQNAME="\Root\MusicLocal\Service\Mp3DeduplicateService" />
       <entry_point TYPE="phpMethod" FQNAME="\Root\MusicLocal\Service\Mp3ResortService __construct" />
       <entry_point TYPE="phpClass" FQNAME="\Root\MusicLocal\Service\Mp3ResortService" />
+      <entry_point TYPE="phpMethod" FQNAME="\Root\MusicLocal\Service\MusicMetadataService __construct" />
+      <entry_point TYPE="phpClass" FQNAME="\Root\MusicLocal\Service\MusicMetadataService" />
     </entry_point>
     <pattern value="\Root\MusicLocal\Service\FileResortService" member="__construct" />
     <pattern value="\Root\MusicLocal\Service\FileResortService" />
+    <pattern value="\Root\MusicLocal\Service\Mp3DeduplicateService" member="__construct" />
+    <pattern value="\Root\MusicLocal\Service\Mp3DeduplicateService" />
     <pattern value="\Root\MusicLocal\Service\Mp3ResortService" member="__construct" />
     <pattern value="\Root\MusicLocal\Service\Mp3ResortService" />
+    <pattern value="\Root\MusicLocal\Service\MusicMetadataService" member="__construct" />
+    <pattern value="\Root\MusicLocal\Service\MusicMetadataService" />
   </component>
 </project>

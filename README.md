@@ -1,125 +1,142 @@
-# MP3 Resort Tool
+# Music Resort/Deduplicate Tool
 
-Консольна команда для автоматичного сортування MP3 файлів за виконавцями.
+Console commands for automatically sorting music files (mp3, flac, m4a) by artists in separate folders and deduplicating
+audio.
 
-## Встановлення
+Read this in Ukrainian: [README_uk](./docs/README_uk.md)
 
-1. Встановіть залежності:
+## Installation
 
-```bash
-composer install
-```
+1. #### Install dependencies:
 
-1. Зробіть консольний файл виконуваним (Linux/Mac):
+    ```
+    composer install
+    ```
 
-```bash
-chmod +x bin/console
-```
+2. #### Make the console file executable (Linux/Mac):
 
-## Використання
+    ```
+    chmod +x bin/console
+    ```
 
-### Основна команда
+## Usage
 
-```bash
-php bin/console mp3:resort <source_directory> <destination_directory>
-```
+- ### Sort music into artist folders
 
-### Режим симуляції (dry-run)
+    ```
+    php bin/console mp3:resort <source_directory> <destination_directory>
+    ```
 
-```bash
-php bin/console mp3:resort <source_directory> <destination_directory> --dry-run
-```
+    - **Windows:**
 
-### Приклади
+        ```
+        php bin/console mp3:resort "C:\Music\Unsorted" "C:\Music\Sorted"
+        ```
 
-**Windows:**
+    - **Linux/Mac:**
 
-```bash
-php bin/console mp3:resort "C:\Music\Unsorted" "C:\Music\Sorted"
-```
+        ```
+        php bin/console mp3:resort "/home/user/music/unsorted" "/home/user/music/sorted"
+        ```
 
-**Linux/Mac:**
+- ### Deduplicate music in a folder
 
-```bash
-php bin/console mp3:resort "/home/user/music/unsorted" "/home/user/music/sorted"
-```
+    ```
+    php bin/console mp3:deduplicate <source_directory>
+    ```
 
-**Режим симуляції (Windows):**
+    - **Windows:**
 
-```bash
-php bin/console mp3:resort "C:\Music\Unsorted" "C:\Music\Sorted" --dry-run
-```
+        ```
+        php bin/console mp3:deduplicate "C:\Music\Unsorted"
+        ```
 
-**Режим симуляції (Linux/Mac):**
+    - **Linux/Mac:**
 
-```bash
-php bin/console mp3:resort "/home/user/music/unsorted" "/home/user/music/sorted" --dry-run
-```
+        ```
+        php bin/console mp3:deduplicate "/home/user/music/unsorted"
+        ```
 
-## Функціональність
+## Features
 
-### Що робить команда:
+### What the command does:
 
-1. **Сканує** вихідну теку на наявність MP3 файлів
-2. **Читає метадані** кожного файлу
-3. **Витягує інформацію** про виконавця з тегів
-4. **Обробляє множинних виконавців** — вибирає першого
-5. **Створює теки** за іменами виконавців
-6. **Переміщує файли** до відповідних тек
-7. **Обробляє помилки** — пропускає пошкоджені файли
+1. **Scans** the source folder for MP3 files
+2. **Reads metadata** of each file
+3. **Extracts artist information** from tags
+4. **Handles multiple artists** — picks the first one
+5. **Creates folders** named after artists
+6. **Moves files** into corresponding folders
+7. **Handles errors** — skips corrupted files
 
-### Режим симуляції (--dry-run):
+### Simulation mode (--dry-run):
 
-- **Не змінює файлову систему** — жодні файли не переміщуються
-- **Не створює теки** — лише симулює їх створення
-- **Показує всі повідомлення** — як при звичайному виконанні
-- **Відображає план дій** — що буде зроблено з кожним файлом
-- **Безпечний тест** — можна перевірити результат без ризику
+- **Does not change the file system** — no files are moved
+- **Does not create folders** — only simulates their creation
+- **Shows all messages** — same as in normal execution
+- **Displays an action plan** — what will be done with each file
+- **Safe test** — check the result without risk
 
-### Обробка виконавців:
+### Artist handling:
 
-- Пошук в тегах: `artist`, `albumartist`, `band`, `performer`
-- Розділення множинних виконавців: `;`, `,`, `/`, `&`, `feat.`, `ft.`, `featuring`
-- Санітизація імен тек (видалення недопустимих символів)
-- Обмеження довжини імені теки (100 символів)
+- Looks in tags: `artist`, `albumartist`, `band`, `performer`
+- Splits multiple artists by: `;`, `,`, `/`, `&`, `feat.`, `ft.`, `featuring`
+- Sanitizes folder names (removes invalid characters)
+- Limits folder name length (100 characters)
 
-### Обробка помилок:
+### Error handling:
 
-- Файли без метаданих - пропускаються
-- Пошкоджені MP3 файли — пропускаються
-- Файли без інформації про виконавця — пропускаються
-- Конфлікти імен файлів — автоматичне перейменування
+- Files without metadata — skipped
+- Corrupted MP3 files — skipped
+- Files without artist information — skipped
+- Filename conflicts — automatically renamed
 
-## Структура проєкт
+## Project structure
 
 ```
 ├── bin/
-│   └── console              # Точка входу консольної програми
+│   └── console                         # Console application entry point
 ├── src/
-│   └── Command/
-│       └── ResortMp3Command.php  # Основна логіка команди
-├── composer.json            # Залежності проекту
-└── README.md               # Документація
+│   ├── Command/
+│   │   ├── ResortMp3Command.php        # Resort command
+│   │   └── DeduplicateMp3Command.php   # Deduplication command
+│   ├── Service/
+│   │   ├── Mp3ResortService.php        # Resorting logic
+│   │   └── Mp3DeduplicateService.php   # Deduplication logic
+│   └── ...
+├── composer.json                       # Project dependencies
+└── README.md                           # Documentation
 ```
 
-## Залежності
+## Dependencies
 
-- **PHP 8.4+** - мінімальна версія PHP
-- **symfony/console** — консольний інтерфейс
-- **symfony/finder** — пошук файлів
-- **symfony/filesystem** — операції з файловою системою
+- **PHP 8.4+** — minimum PHP version
+- **symfony/console** — console interface
+- **symfony/finder** — file search
+- **symfony/filesystem** — filesystem operations
 
-## Локалізація
+## Localization
 
-- Усі повідомлення локалізовані через глобальну функцію __() і файли перекладів у каталозі `lang` (напр.,
-  `lang/uk/console.php`).
-- Базова локаль за замовчуванням — `uk`.
-- Для зміни локалі на рівні коду можна викликати `\Root\MusicLocal\Service\LocalizationService::setLocale('uk')`.
-- Додавання нової мови: створіть директорію `lang/<locale>/` і файл перекладу `console.php` з тими ж ключами.
+- All messages are localized via the global function `__()` and translation files in the `lang` directory (e.g.,
+  `lang/en/console.php`).
+- Default locale — `en` (see `config/app.php` → `default_lang`).
+- You can change the locale via .env: `DEFAULT_LANG=uk`, or in code:
+  `\Root\MusicLocal\Service\LocalizationService::setLocale('uk')`.
+- To add a new language: create the directory `lang/<locale>/` and the translation file `console.php` with the same
+  keys.
 
-## Приклад виводу
+Example .env:
 
-### Звичайний режим:
+```dotenv
+# Force dry-run for all commands
+DEBUG=true
+# CLI interface locale
+DEFAULT_LANG=uk
+```
+
+## Example output
+
+### Normal mode:
 
 ```
 MP3 File Resorting
@@ -138,146 +155,124 @@ MP3 File Resorting
  [OK] Skipped files (errors): 1
 ```
 
-### Режим симуляції (--dry-run):
+## Additional capabilities
+
+### View help:
 
 ```
- ! [NOTE] РЕЖИМ ПЕРЕВІРКИ (DRY-RUN): Зміни у файловій системі не вноситимуться
-
-MP3 File Resorting
-==================
-
- ! [NOTE] Було б створено папку виконавця: The Beatles
- ! [NOTE] Було б перенесено файл: song1.mp3 -> The_Beatles/song1.mp3
-
- ! [NOTE] Було б створено папку виконавця: Queen
- ! [NOTE] Було б перенесено файл: song2.mp3 -> Queen/song2.mp3
-
- ! [WARNING] Skipped file corrupted.mp3: No artist information found in metadata
-
- 3/3 [============================] 100%
-
- [OK] MP3 resorting completed!
- [OK] Processed files: 2
- [OK] Skipped files (errors): 1
-```
-
-## Додаткові можливості
-
-### Перегляд довідки:
-
-```bash
 php bin/console mp3:resort --help
+php bin/console mp3:deduplicate --help
 ```
 
-### Режим симуляції:
+### Simulation mode:
 
-```bash
+```
 php bin/console mp3:resort <source> <destination> --dry-run
+php bin/console mp3:deduplicate <source> --dry-run
 ```
 
-### Перегляд версії:
+### Show version:
 
-```bash
+```
 php bin/console --version
 ```
 
-### Список доступних команд:
+### List available commands:
 
-```bash
+```
 php bin/console list
 ```
 
-## Тестування (планується)
+## Testing (planned)
 
-Наразі автотести відсутні в цьому репозиторії. Нижче описано плановану структуру та сценарії тестів, які можуть бути
-додані пізніше.
+There are currently no automated tests in this repository. Below is the planned structure and scenarios that may be
+added later.
 
-Проєкт уключає повний набір тестів для забезпечення якості коду, написаних з використанням фреймворку Pest.
+The project will include a full set of tests for code quality, written with the Pest framework.
 
-### Структура тестів:
+### Test structure:
 
 ```
 tests/
-├── Unit/                     # Модульні тести
+├── Unit/                     # Unit tests
 │   └── ResortMp3CommandTest.php
-├── Integration/              # Інтеграційні тести
+├── Integration/              # Integration tests
 │   └── ResortMp3CommandIntegrationTest.php
-└── Fixtures/                 # Допоміжні класи для тестів
+└── Fixtures/                 # Helper classes for tests
     └── Mp3TestHelper.php
 ```
 
-### Запуск тестів:
+### Running tests:
 
-1. **Встановіть залежності для розробки:**
+1. **Install development dependencies:**
 
-```bash
+```
 composer install
 ```
 
-1. **Запустіть всі тести:**
+2. **Run all tests:**
 
-```bash
+```
 php vendor/bin/pest
 ```
 
-1. **Запустіть тільки модульні тести:**
+3. **Run only unit tests:**
 
-```bash
+```
 php vendor/bin/pest tests/Unit
 ```
 
-1. **Запустіть тільки інтеграційні тести:**
+4. **Run only integration tests:**
 
-```bash
+```
 php vendor/bin/pest tests/Integration
 ```
 
-1. **Запустіть тести з детальним виводом:**
+5. **Run tests with verbose output:**
 
-```bash
+```
 php vendor/bin/pest --verbose
 ```
 
-### Покриття тестами:
+### Test coverage:
 
-**Модульні тести:**
+**Unit tests:**
 
-- `sanitizeFolderName()` - санітизація імен тек
-- `extractArtist()` - витягування інформації про виконавця
-- Обробка спеціальних символів
-- Обробка множинних виконавців
-- Обробка довгих імен
+- `sanitizeFolderName()` — folder name sanitization
+- `extractArtist()` — artist extraction
+- Handling special characters
+- Handling multiple artists
+- Handling long names
 
-**Інтеграційні тести:**
+**Integration tests:**
 
-- Повний цикл виконання команди
-- Обробка помилок (теки, що не існує)
-- Створення тек призначення
-- Обробка порожніх тек
-- Обробка невалідних MP3 файлів
-- Конфігурація команди
+- Full command execution flow
+- Error handling (non-existent folders)
+- Destination folder creation
+- Handling empty folders
+- Handling invalid MP3 files
+- Command configuration
 
-**Тестові дані:**
+**Test data:**
 
-- Генерація валідних MP3 файлів з метаданими
-- Тестування граничних випадків
-- Обробка Unicode символів
-- Файли з різними форматами тегів
+- Generating valid MP3 files with metadata
+- Testing edge cases
+- Handling Unicode characters
+- Files with different tag formats
 
-### Конфігурація тестів:
+### Test configuration:
 
-Тести налаштовані через `tests/Pest.php`:
+Tests are configured via `tests/Pest.php`:
 
-- Автозавантаження через `vendor/autoload.php`
-- Використання PHPUnit\Framework\TestCase для всіх тестів
-- Кольоровий вивід результатів
-- Підтримка datasets та функціональних тестів
-- Покриття коду для `src/` директорії
+- Autoloading through `vendor/autoload.php`
+- Using `PHPUnit\\Framework\\TestCase` for all tests
+- Colored output
+- Support for datasets and functional tests
+- Code coverage for the `src/` directory
 
-## Рекомендації
+## Recommendations
 
-1. **Створіть резервну копію** ваших файлів перед використанням
-2. **Перевірте права доступу** до тек призначення
-3. **Використовуйте абсолютні шляхи** для уникнення помилок
-4. **Файли з помилками** потребують ручної обробки
-5. **Запускайте тести** після внесення змін у код
+1. **Back up your files** before use
+2. **Check permissions** for destination folders
+3. **Use absolute paths** to avoid errors
+4. **Files with errors** may require manual handling

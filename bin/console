@@ -6,6 +6,7 @@ if (!function_exists('__')) {
     require_once __DIR__ . '/../src/Helpers/helpers.php';
 }
 
+use Root\MusicLocal\Command\DeduplicateMp3Command;
 use Root\MusicLocal\Command\ResortMp3Command;
 use Root\MusicLocal\Service\ConfigService;
 use Root\MusicLocal\Service\LocalizationService;
@@ -17,6 +18,7 @@ LocalizationService::setLocale(ConfigService::get('app.default_lang'));
 
 $application = new Application('MP3 Resort Tool', '1.0.0');
 $application->add(new ResortMp3Command());
+$application->add(new DeduplicateMp3Command());
 try {
     $application->run();
 } catch (Exception $e) {

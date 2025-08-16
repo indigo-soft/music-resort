@@ -13,7 +13,6 @@ use Symfony\Component\Finder\Finder;
 
 final class Mp3ResortService
 {
-    private MusicMetadataService $musicMetadataService;
     private string $sourceDir;
     private string $destinationDir;
     private ConsoleStyle $io;
@@ -27,7 +26,6 @@ final class Mp3ResortService
      */
     public function __construct(string $sourceDir, string $destinationDir, ConsoleStyle $io, bool $dryRun = false)
     {
-        $this->musicMetadataService = new MusicMetadataService();
         $this->sourceDir = $sourceDir;
         $this->destinationDir = $destinationDir;
         $this->io = $io;
@@ -163,20 +161,9 @@ final class Mp3ResortService
      */
     private function processSingleFile(string $filePath): void
     {
-        $info = $this->musicMetadataService->getMetadata($filePath);
-        $tags = $this->musicMetadataService->extractTags($info);
-        $artists = $this->musicMetadataService->extractArtist($tags);
-        $artist = $this->extractFirstArtist($artists);
-        $title = $this->musicMetadataService->extractTitle($tags);
-
-        if (trim($artist) === '') {
-            throw new MusicMetadataException(__('console.error.no_artist'));
-        }
-
-        if (trim($title) === '') {
-            throw new MusicMetadataException(__('console.error.no_title'));
-        }
-
+        $metaData = new MusicMetadataService($filePath);
+        $artist = $this->extractFirstArtist($metaData->getArtist());
+        $title = $metaData->getTitle();
         $fileService = new FileResortService($this->io, $this->destinationDir, $this->dryRun, $artist, $title);
         $fileService->moveToArtistFolder($filePath);
     }

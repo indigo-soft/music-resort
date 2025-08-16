@@ -57,8 +57,8 @@ final class ConfigService
             throw new ConfigException('Config section: ' . $configKey . ' does not exist.');
         }
 
-        if (array_key_exists($key, $config[$configKey])) {
-            throw new ConfigException('Config parametr: ' . $paramKey . ' does not exist.');
+        if (!array_key_exists($paramKey, $config[$configKey])) {
+            throw new ConfigException('Config parameter: ' . $paramKey . ' does not exist.');
         }
 
         return $config[$configKey][$paramKey];
