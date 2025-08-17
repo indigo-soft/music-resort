@@ -5,7 +5,7 @@ namespace MusicResort\Service;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class ConsoleCommandService
+final class ConsoleCommandService
 {
     public InputInterface $input;
     public OutputInterface $output;

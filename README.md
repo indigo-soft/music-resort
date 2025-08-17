@@ -24,37 +24,73 @@ Read this in Ukrainian: [README_uk](./docs/README_uk.md)
 - ### Sort music into artist folders
 
     ```
-    php bin/console mp3:resort <source_directory> <destination_directory>
+    php bin/console music:resort <source_directory> <destination_directory>
     ```
 
     - **Windows:**
 
         ```
-        php bin/console mp3:resort "C:\Music\Unsorted" "C:\Music\Sorted"
+        php bin/console music:resort "C:\Music\Unsorted" "C:\Music\Sorted"
         ```
 
     - **Linux/Mac:**
 
         ```
-        php bin/console mp3:resort "/home/user/music/unsorted" "/home/user/music/sorted"
+        php bin/console music:resort "/home/user/music/unsorted" "/home/user/music/sorted"
         ```
 
 - ### Deduplicate music in a folder
 
     ```
-    php bin/console mp3:deduplicate <source_directory>
+    php bin/console music:deduplicate <source_directory>
     ```
 
     - **Windows:**
 
         ```
-        php bin/console mp3:deduplicate "C:\Music\Unsorted"
+        php bin/console music:deduplicate "C:\Music\Unsorted"
         ```
 
     - **Linux/Mac:**
 
         ```
-        php bin/console mp3:deduplicate "/home/user/music/unsorted"
+        php bin/console music:deduplicate "/home/user/music/unsorted"
+        ```
+
+- ### Fix file extensions based on metadata
+
+    ```
+    php bin/console music:fix-extensions <source_directory> [--dry-run]
+    ```
+
+    - **Windows:**
+
+        ```
+        php bin/console music:fix-extensions "C:\\Music\\Unsorted" --dry-run
+        ```
+
+    - **Linux/Mac:**
+
+        ```
+        php bin/console music:fix-extensions "/home/user/music/unsorted" --dry-run
+        ```
+
+- ### Clean invalid/corrupted files
+
+    ```
+    php bin/console music:clean <source_directory> [--dry-run]
+    ```
+
+    - **Windows:**
+
+        ```
+        php bin/console music:clean "C:\\Music\\Unsorted" --dry-run
+        ```
+
+    - **Linux/Mac:**
+
+        ```
+        php bin/console music:clean "/home/user/music/unsorted" --dry-run
         ```
 
 ## Features
@@ -160,8 +196,8 @@ MP3 File Resorting
 ### View help:
 
 ```
-php bin/console mp3:resort --help
-php bin/console mp3:deduplicate --help
+php bin/console music:resort --help
+php bin/console music:deduplicate --help
 ```
 
 ### Simulation mode:
