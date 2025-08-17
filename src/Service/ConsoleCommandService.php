@@ -41,6 +41,6 @@ class ConsoleCommandService
      */
     public function getDestinationDir(): string
     {
-        return (string)$this->input->getOption('destination');
+        return (string)$this->input->getArgument('destination');
     }
 }

@@ -9,12 +9,25 @@ use MusicResort\Exception\MusicMetadataException;
 
 final class MusicMetadataService
 {
+    private const array EXTENSIONS_MAPPING = [
+        'mp3' => 'mp3',
+        'mp2' => 'mp2',
+        'mp1' => 'mp1',
+        'flac' => 'flac',
+        'wav' => 'wav',
+        'wma' => 'wma',
+        'vorbis' => 'ogg',
+        'aac' => 'm4a',
+        'mp4' => 'm4a',
+        'quicktime' => 'm4a',
+    ];
     public readonly ?int $bitrate;
     private readonly array $metaData;
     private readonly array $tags;
     private readonly string|int $artist;
     private readonly string|int $title;
     private readonly ?int $duration;
+    private readonly ?string $format;
 
     public function __construct(
         public string $filePath,
@@ -28,6 +41,7 @@ final class MusicMetadataService
         if ($isExtented) {
             $this->duration = $this->extractDuration();
             $this->bitrate = $this->extractBitrate();
+            $this->format = $this->extactFormat();
         }
     }
 
@@ -50,7 +64,6 @@ final class MusicMetadataService
             throw new MusicMetadataException($warnings);
         }
 
-        dump($metaData['audio']);
         return $metaData;
     }
 
@@ -162,6 +175,30 @@ final class MusicMetadataService
         return $this->proccessTags(['bitrate'], $this->metaData);
     }
 
+    private function extactFormat(): ?string
+    {
+        // fields: audio=>dataformat, fileformat
+
+        // audio=>dataformat
+        if (array_key_exists('audio', $this->metaData) &&
+            array_key_exists('dataformat', $this->metaData['audio'])) {
+            $formatFromAudio = $this->proccessTags(['dataformat'], $this->metaData['audio']);
+            if ($formatFromAudio !== null) {
+                return $formatFromAudio;
+            }
+        }
+
+        // fileformat
+        if (array_key_exists('fileformat', $this->metaData)) {
+            $durationFromMeta = $this->proccessTags(['fileformat'], $this->metaData);
+            if ($durationFromMeta !== null) {
+                return $durationFromMeta;
+            }
+        }
+
+        return null;
+    }
+
     public function getArtist(): string|int
     {
         return $this->artist;
@@ -180,5 +217,19 @@ final class MusicMetadataService
     public function getBitrate(): ?int
     {
         return $this->bitrate;
+    }
+
+    public function getFormat(): ?string
+    {
+        return strtolower($this->format);
+    }
+
+    public function getCorrectExtension(): string
+    {
+        if (!in_array((string)$this->getFormat(), array_keys(self::EXTENSIONS_MAPPING), true)) {
+            throw new MusicMetadataException('Unknown format!: ' . $this->format);
+        }
+
+        return self::EXTENSIONS_MAPPING[$this->format];
     }
 }

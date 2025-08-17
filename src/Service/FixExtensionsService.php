@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace MusicResort\Service;
 
 use Exception;
-use getID3;
 use MusicResort\Component\ConsoleStyle;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Filesystem\Filesystem;
@@ -92,13 +91,12 @@ final class FixExtensionsService
     private function processFiles(Finder $finder): array
     {
         $fs = new Filesystem();
-        $analyzer = new getID3();
         $processed = 0;
         $errors = 0;
 
         foreach ($finder as $file) {
             $this->io->progressAdvance();
-            [$p, $e] = $this->processSingleFile($file->getRealPath() ?: '', $fs, $analyzer);
+            [$p, $e] = $this->processSingleFile($file->getRealPath() ?: '', $fs);
             $processed += $p;
             $errors += $e;
         }
@@ -109,17 +107,10 @@ final class FixExtensionsService
     /**
      * @return array{0:int,1:int}
      */
-    private function processSingleFile(string $path, Filesystem $fs, getID3 $analyzer): array
+    private function processSingleFile(string $path, Filesystem $fs): array
     {
-        if ($path === '') {
-            return [0, 1];
-        }
         try {
-            $info = $this->analyzePath($analyzer, $path);
-            if ($info === null) {
-                return [0, 1];
-            }
-            return $this->handleExtensionFix($path, $info, $fs);
+            return $this->handleExtensionFix($path, $fs);
         } catch (Throwable $e) {
             $this->io->warning(__('console.warning.file_skipped', ['file' => basename($path), 'message' => $e->getMessage()]));
             return [0, 1];
@@ -127,35 +118,17 @@ final class FixExtensionsService
     }
 
     /**
-     * @param getID3 $analyzer
-     * @param string $path
-     * @return array|null
-     */
-    private function analyzePath(getID3 $analyzer, string $path): ?array
-    {
-        $info = $analyzer->analyze($path);
-        $err = $info['error'] ?? null;
-        $errText = is_array($err) ? implode('; ', $err) : (is_string($err) ? $err : null);
-        if ($errText !== null) {
-            $this->io->warning(__('console.warning.file_skipped', ['file' => basename($path), 'message' => $errText]));
-            return null;
-        }
-        return $info;
-    }
-
-    /**
      * @return array{0:int,1:int}
      */
-    private function handleExtensionFix(string $path, array $info, Filesystem $fs): array
+    private function handleExtensionFix(string $path, Filesystem $fs): array
     {
-        $expected = $this->detectExpectedExtension($info);
-        if (!$expected) {
-            return [0, 0];
-        }
+        $expected = new MusicMetadataService($path, true)->getCorrectExtension();
         $current = strtolower(pathinfo($path, PATHINFO_EXTENSION) ?: '');
+
         if ($current === $expected) {
             return [0, 0];
         }
+
         $target = $this->buildTargetPath($path, $expected, $fs);
         return $this->dryRun
             ? $this->logDryRunRename($path, $target)
@@ -195,20 +168,5 @@ final class FixExtensionsService
             $target = $dir . DIRECTORY_SEPARATOR . $base . '_' . $i . '.' . $expectedExt;
         }
         return $target;
-    }
-
-    private function detectExpectedExtension(array $info): ?string
-    {
-        $raw = $info['id3v2']['dataformat'] ?? $info['audio']['dataformat'] ?? $info['fileformat'] ?? '';
-        $format = is_string($raw) ? strtolower($raw) : '';
-        if ($format === '') {
-            return null;
-        }
-        $map = [
-            'mp3' => 'mp3', 'mp2' => 'mp2', 'mp1' => 'mp1', 'flac' => 'flac',
-            'wav' => 'wav', 'wma' => 'wma', 'aac' => 'm4a', 'mp4' => 'm4a',
-            'quicktime' => 'm4a', 'vorbis' => 'ogg',
-        ];
-        return $map[$format] ?? null;
     }
 }
