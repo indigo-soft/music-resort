@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Root\MusicLocal\Command;
+namespace MusicResort\Command;
 
-use Root\MusicLocal\Component\ConsoleStyle;
-use Root\MusicLocal\Service\ConfigService;
-use Root\MusicLocal\Service\Mp3ResortService;
+use MusicResort\Component\ConsoleStyle;
+use MusicResort\Service\ConsoleCommandService;
+use MusicResort\Service\Mp3ResortService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -39,15 +39,10 @@ final class ResortMp3Command extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new ConsoleStyle($input, $output);
-
-        $sourceDir = (string)$input->getArgument('source');
-        $destinationDir = (string)$input->getArgument('destination');
-        $dryRun = (bool)$input->getOption('dry-run');
-
-        // If DEBUG is enabled in config, always force dry-run mode
-        if (ConfigService::get('app.debug')) {
-            $dryRun = true;
-        }
+        $commandService = new ConsoleCommandService($input, $output);
+        $sourceDir = $commandService->getSourceDir();
+        $destinationDir = $commandService->getDestinationDir();
+        $dryRun = $commandService->isDryRun();
 
         $service = new Mp3ResortService($sourceDir, $destinationDir, $io, $dryRun);
         $result = $service->resort();

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Root\MusicLocal\Service\LocalizationService;
+use MusicResort\Service\LocalizationService;
 
 if (!function_exists('__')) {
     /**

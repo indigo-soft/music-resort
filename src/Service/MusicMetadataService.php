@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Root\MusicLocal\Service;
+namespace MusicResort\Service;
 
 use getID3;
-use Root\MusicLocal\Exception\MusicMetadataException;
+use MusicResort\Exception\MusicMetadataException;
 
 final class MusicMetadataService
 {
     public readonly ?int $bitrate;
     private readonly array $metaData;
     private readonly array $tags;
-    private readonly string $artist;
-    private readonly string $title;
+    private readonly string|int $artist;
+    private readonly string|int $title;
     private readonly ?int $duration;
 
     public function __construct(
@@ -37,20 +37,21 @@ final class MusicMetadataService
      */
     private function setMetadata(string $filePath): array
     {
-        $info = new getID3()->analyze($filePath);
+        $metaData = new getID3()->analyze($filePath);
 
         // Handle getID3 reported errors/warnings explicitly
-        if (isset($info['error']) && $info['error']) {
-            $errors = is_array($info['error']) ? implode('; ', $info['error']) : (string)$info['error'];
+        if (isset($metaData['error']) && $metaData['error']) {
+            $errors = is_array($metaData['error']) ? implode('; ', $metaData['error']) : (string)$metaData['error'];
             throw new MusicMetadataException($errors);
         }
-        if (isset($info['warning']) && $info['warning']) {
-            $warnings = is_array($info['warning']) ? implode('; ', $info['warning']) : (string)$info['warning'];
+        if (isset($metaData['warning']) && $metaData['warning']) {
+            $warnings = is_array($metaData['warning']) ? implode('; ', $metaData['warning']) : (string)$metaData['warning'];
             // Treat warnings as non-fatal? For reliability, we escalate to exception so a file is skipped with reason
             throw new MusicMetadataException($warnings);
         }
 
-        return $info;
+        dump($metaData['audio']);
+        return $metaData;
     }
 
     /**
@@ -120,9 +121,9 @@ final class MusicMetadataService
     }
 
     /**
-     * @return string
+     * @return string|int
      */
-    private function extractTitle(): string
+    private function extractTitle(): string|int
     {
         return $this->proccessTags(['title'], $this->tags, __('console.error.no_title'));
     }
@@ -161,12 +162,12 @@ final class MusicMetadataService
         return $this->proccessTags(['bitrate'], $this->metaData);
     }
 
-    public function getArtist(): ?string
+    public function getArtist(): string|int
     {
         return $this->artist;
     }
 
-    public function getTitle(): ?string
+    public function getTitle(): string|int
     {
         return $this->title;
     }

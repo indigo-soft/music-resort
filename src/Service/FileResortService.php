@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Root\MusicLocal\Service;
+namespace MusicResort\Service;
 
-use Root\MusicLocal\Component\ConsoleStyle;
+use MusicResort\Component\ConsoleStyle;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
@@ -12,14 +12,20 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 final class FileResortService
 {
+    private const int MAX_PATH_LENGTH = 150;
     private Filesystem $filesystem;
     private ConsoleStyle $io;
     private string $destinationDir;
     private bool $dryRun;
-    private string $artist;
-    private string $title;
+    private string|int $artist;
+    private string|int $title;
 
-    public function __construct(ConsoleStyle $io, string $destinationDir, bool $dryRun, string $artist, string $title)
+    public function __construct(
+        ConsoleStyle $io,
+        string       $destinationDir,
+        bool         $dryRun,
+        string|int   $artist,
+        string|int   $title)
     {
         $this->filesystem = new Filesystem();
         $this->io = $io;
@@ -59,15 +65,16 @@ final class FileResortService
                 $this->io->note(__('console.note.artist_folder_created_dry', ['folder' => $artistFolder]));
             }
         }
+
         return $artistPath;
     }
 
     /**
-     * @param string $artist
-     * @param string $title
+     * @param string|int $artist
+     * @param string|int $title
      * @return string
      */
-    private function buildFileName(string $artist, string $title): string
+    private function buildFileName(string|int $artist, string|int $title): string
     {
         $raw = $artist . ' - ' . $title;
         return $this->sanitizeFileName($raw);
@@ -115,17 +122,18 @@ final class FileResortService
     }
 
     /**
-     * @param string $name
+     * @param string|int $artist
      * @return string
      */
-    private function sanitizeFolderName(string $name): string
+    private function sanitizeFolderName(string|int $artist): string
     {
         $invalid = ['<', '>', ':', '"', '|', '?', '*', '/', '\\'];
-        $sanitized = str_replace($invalid, '', $name);
+        $sanitized = str_replace($invalid, '', $artist);
         $sanitized = trim($sanitized, '. ');
         if (strlen($sanitized) > 100) {
             $sanitized = substr($sanitized, 0, 100);
         }
+
         return $sanitized ?: __('console.fallback.unknown_artist_folder');
     }
 
@@ -136,16 +144,20 @@ final class FileResortService
     {
         // Forbidden characters for Windows + forward slash and backslash
         $invalid = ['<', '>', ':', '"', '|', '?', '*', '/', '\\'];
+
         // Replace forbidden characters with underscores
         $sanitized = str_replace($invalid, '_', $name);
+
         // Remove control characters and normalize spaces
         $sanitized = preg_replace('/[\x00-\x1F\x7F]+/u', '', $sanitized) ?? '';
         $sanitized = preg_replace('/\s+/', ' ', $sanitized) ?? '';
         $sanitized = trim($sanitized, " .");
+
         // Limit length (to avoid MAX_PATH issues on Windows with deep paths)
-        if (strlen($sanitized) > 150) {
-            $sanitized = substr($sanitized, 0, 150);
+        if (strlen($sanitized) > self::MAX_PATH_LENGTH) {
+            $sanitized = substr($sanitized, 0, self::MAX_PATH_LENGTH);
         }
+
         // Ensure we have at least some name
         return $sanitized !== '' ? $sanitized : __('console.fallback.unknown_file_name');
     }

@@ -6,7 +6,7 @@ namespace MusicResort\Command;
 
 use MusicResort\Component\ConsoleStyle;
 use MusicResort\Service\ConsoleCommandService;
-use MusicResort\Service\Mp3DeduplicateService;
+use MusicResort\Service\FixExtensionsService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -15,39 +15,42 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
-    name: 'mp3:deduplicate',
-    description: 'Deduplicate audio files by artist and title'
+    name: 'files:fix-extensions',
+    description: 'Fix file extensions based on metadata'
 )]
-final class DeduplicateMp3Command extends Command
+final class FixExtensionsCommand extends Command
 {
     public function __construct()
     {
         parent::__construct();
     }
 
-    /** @noinspection PhpUnused */
+    /**
+     * @return void
+     */
     protected function configure(): void
     {
         $this
             ->addArgument('source', InputArgument::REQUIRED, __('console.arg.source'))
             ->addOption('dry-run', null, InputOption::VALUE_NONE, __('console.opt.dry_run'))
-            ->setHelp(__('console.command.mp3_deduplicate.help'));
+            ->setHelp(__('console.command.fix_extensions.help'));
     }
 
-    /** @noinspection PhpUnused */
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new ConsoleStyle($input, $output);
         $commandService = new ConsoleCommandService($input, $output);
         $sourceDir = $commandService->getSourceDir();
-        $dryRun = $commandService->isDryRun();
-
-        $service = new Mp3DeduplicateService($sourceDir, $io, $dryRun);
-        $result = $service->deduplicate();
+        $service = new FixExtensionsService($sourceDir, $io, $commandService->isDryRun());
+        $result = $service->fixExtension();
 
         if ($result['status'] === Command::SUCCESS) {
             $io->success([
-                __('console.success.deduplicated'),
                 __('console.success.processed', ['processed' => $result['processed']]),
                 __('console.success.errors', ['errors' => $result['errors']]),
             ]);

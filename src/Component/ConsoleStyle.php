@@ -1,6 +1,6 @@
 <?php
 
-namespace Root\MusicLocal\Component;
+namespace MusicResort\Component;
 
 use Countable;
 use Symfony\Component\Console\Exception\RuntimeException;

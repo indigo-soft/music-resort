@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Root\MusicLocal\Service;
+namespace MusicResort\Service;
 
-use Root\MusicLocal\Exception\ConfigException;
+use MusicResort\Exception\ConfigException;
 
 final class ConfigService
 {

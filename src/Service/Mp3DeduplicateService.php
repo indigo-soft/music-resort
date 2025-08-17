@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Root\MusicLocal\Service;
+namespace MusicResort\Service;
 
 use Exception;
-use Root\MusicLocal\Component\ConsoleStyle;
+use MusicResort\Component\ConsoleStyle;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;

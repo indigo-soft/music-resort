@@ -10,6 +10,17 @@
       <entry_point TYPE="phpClass" FQNAME="\Root\MusicLocal\Service\Mp3ResortService" />
       <entry_point TYPE="phpMethod" FQNAME="\Root\MusicLocal\Service\MusicMetadataService __construct" />
       <entry_point TYPE="phpClass" FQNAME="\Root\MusicLocal\Service\MusicMetadataService" />
+      <entry_point TYPE="phpMethod" FQNAME="\MusicResort\Service\FileResortService __construct" />
+      <entry_point TYPE="phpClass" FQNAME="\MusicResort\Service\FileResortService" />
+      <entry_point TYPE="phpMethod" FQNAME="\MusicResort\Service\Mp3DeduplicateService __construct" />
+      <entry_point TYPE="phpClass" FQNAME="\MusicResort\Service\Mp3DeduplicateService" />
+      <entry_point TYPE="phpMethod" FQNAME="\MusicResort\Service\Mp3ResortService __construct" />
+      <entry_point TYPE="phpClass" FQNAME="\MusicResort\Service\Mp3ResortService" />
+      <entry_point TYPE="phpMethod" FQNAME="\MusicResort\Service\MusicMetadataService __construct" />
+      <entry_point TYPE="phpClass" FQNAME="\MusicResort\Service\MusicMetadataService" />
+      <entry_point TYPE="phpMethod" FQNAME="\MusicResort\Command\FixExtensionsCommand execute" />
+      <entry_point TYPE="phpClass" FQNAME="\MusicResort\Command\FixExtensionsCommand" />
+      <entry_point TYPE="phpMethod" FQNAME="\MusicResort\Command\FixExtensionsCommand configure" />
     </entry_point>
     <pattern value="\Root\MusicLocal\Service\FileResortService" member="__construct" />
     <pattern value="\Root\MusicLocal\Service\FileResortService" />
@@ -19,5 +30,16 @@
     <pattern value="\Root\MusicLocal\Service\Mp3ResortService" />
     <pattern value="\Root\MusicLocal\Service\MusicMetadataService" member="__construct" />
     <pattern value="\Root\MusicLocal\Service\MusicMetadataService" />
+    <pattern value="\MusicResort\Service\FileResortService" member="__construct" />
+    <pattern value="\MusicResort\Service\FileResortService" />
+    <pattern value="\MusicResort\Service\Mp3DeduplicateService" member="__construct" />
+    <pattern value="\MusicResort\Service\Mp3DeduplicateService" />
+    <pattern value="\MusicResort\Service\Mp3ResortService" member="__construct" />
+    <pattern value="\MusicResort\Service\Mp3ResortService" />
+    <pattern value="\MusicResort\Service\MusicMetadataService" member="__construct" />
+    <pattern value="\MusicResort\Service\MusicMetadataService" />
+    <pattern value="\MusicResort\Command\FixExtensionsCommand" member="execute" />
+    <pattern value="\MusicResort\Command\FixExtensionsCommand" />
+    <pattern value="\MusicResort\Command\FixExtensionsCommand" member="configure" />
   </component>
 </project>

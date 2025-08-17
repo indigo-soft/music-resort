@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Root\MusicLocal\Service;
+namespace MusicResort\Service;
 
 use Exception;
-use Root\MusicLocal\Component\ConsoleStyle;
-use Root\MusicLocal\Exception\MusicMetadataException;
+use MusicResort\Component\ConsoleStyle;
+use MusicResort\Exception\MusicMetadataException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
@@ -164,7 +164,11 @@ final class Mp3ResortService
         $metaData = new MusicMetadataService($filePath);
         $artist = $this->extractFirstArtist($metaData->getArtist());
         $title = $metaData->getTitle();
-        $fileService = new FileResortService($this->io, $this->destinationDir, $this->dryRun, $artist, $title);
+        $fileService = new FileResortService($this->io,
+            $this->destinationDir,
+            $this->dryRun,
+            $artist,
+            $title);
         $fileService->moveToArtistFolder($filePath);
     }
 

@@ -6,10 +6,11 @@ if (!function_exists('__')) {
     require_once __DIR__ . '/../src/Helpers/helpers.php';
 }
 
-use Root\MusicLocal\Command\DeduplicateMp3Command;
-use Root\MusicLocal\Command\ResortMp3Command;
-use Root\MusicLocal\Service\ConfigService;
-use Root\MusicLocal\Service\LocalizationService;
+use MusicResort\Command\DeduplicateMp3Command;
+use MusicResort\Command\FixExtensionsCommand;
+use MusicResort\Command\ResortMp3Command;
+use MusicResort\Service\ConfigService;
+use MusicResort\Service\LocalizationService;
 use Symfony\Component\Console\Application;
 
 // Initialize configuration and localization
@@ -19,6 +20,7 @@ LocalizationService::setLocale(ConfigService::get('app.default_lang'));
 $application = new Application('MP3 Resort Tool', '1.0.0');
 $application->add(new ResortMp3Command());
 $application->add(new DeduplicateMp3Command());
+$application->add(new FixExtensionsCommand());
 try {
     $application->run();
 } catch (Exception $e) {

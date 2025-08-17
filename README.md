@@ -204,35 +204,32 @@ tests/
 
 ### Running tests:
 
-1. **Install development dependencies:**
+1. #### Install development dependencies:
 
-```
-composer install
-```
+    ```
+    composer install
+    ```
+2. #### Run all tests:
+    ```
+    php vendor/bin/pest
+    ```
 
-2. **Run all tests:**
+3. #### Run only unit tests:
+    ```
+    php vendor/bin/pest tests/Unit
+    ```
 
-```
-php vendor/bin/pest
-```
+4. #### Run only integration tests:
 
-3. **Run only unit tests:**
+   ```
+   php vendor/bin/pest tests/Integration
+   ```
 
-```
-php vendor/bin/pest tests/Unit
-```
+5. #### Run tests with verbose output:
 
-4. **Run only integration tests:**
-
-```
-php vendor/bin/pest tests/Integration
-```
-
-5. **Run tests with verbose output:**
-
-```
-php vendor/bin/pest --verbose
-```
+    ```
+    php vendor/bin/pest --verbose
+    ```
 
 ### Test coverage:
 

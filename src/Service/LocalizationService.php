@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Root\MusicLocal\Service;
+namespace MusicResort\Service;
 
 final class LocalizationService
 {

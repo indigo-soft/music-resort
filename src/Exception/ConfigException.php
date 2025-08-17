@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Root\MusicLocal\Exception;
+namespace MusicResort\Exception;
 
 use RuntimeException;
 use Throwable;

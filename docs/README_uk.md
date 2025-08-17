@@ -55,6 +55,24 @@ chmod +x bin/console
       php bin/console mp3:deduplicate "/home/user/music/unsorted"
       ```
 
+- ### Виправлення розширень файлів за метаданими
+
+    ```
+    php bin/console files:fix-extensions <source_directory> [--dry-run]
+    ```
+
+    - **Windows:**
+
+      ```
+      php bin/console files:fix-extensions "C:\Music\Unsorted" --dry-run
+      ```
+
+    - **Linux/Mac:**
+
+      ```
+      php bin/console files:fix-extensions "/home/user/music/unsorted" --dry-run
+      ```
+
 ## Функціональність
 
 ### Що робить команда:
@@ -209,27 +227,27 @@ composer install
 
 1. **Запустіть всі тести:**
 
-```
-php vendor/bin/pest
-```
+    ```
+    php vendor/bin/pest
+    ```
 
-1. **Запустіть тільки модульні тести:**
+2. **Запустіть тільки модульні тести:**
 
-```
-php vendor/bin/pest tests/Unit
-```
+    ```
+    php vendor/bin/pest tests/Unit
+    ```
 
-1. **Запустіть тільки інтеграційні тести:**
+3. **Запустіть тільки інтеграційні тести:**
 
-```
-php vendor/bin/pest tests/Integration
-```
+    ```
+    php vendor/bin/pest tests/Integration
+    ```
 
-1. **Запустіть тести з детальним виводом:**
+4. **Запустіть тести з детальним виводом:**
 
-```
-php vendor/bin/pest --verbose
-```
+    ```
+    php vendor/bin/pest --verbose
+    ```
 
 ### Покриття тестами:
 
