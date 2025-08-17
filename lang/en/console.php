@@ -49,6 +49,7 @@ return [
         'deduplicated' => 'Audio deduplication completed!',
         'processed' => 'Processed files: :processed',
         'errors' => 'Skipped (errors): :errors',
+        'removed_empty_dirs' => 'Removed empty directories: :count',
     ],
 
     'info' => [
@@ -56,6 +57,7 @@ return [
         'moved' => 'Moved file: :file -> :dest',
         'deleted' => 'Deleted file: :file',
         'renamed' => 'Renamed: :from -> :to',
+        'dir_deleted' => 'Deleted empty directory: :path',
     ],
 
     'note' => [
@@ -65,6 +67,7 @@ return [
         'dry_moved' => 'Would move file: :file -> :dest',
         'dry_deleted' => 'Would delete file: :file',
         'dry_renamed' => 'Would rename: :from -> :to',
+        'dry_dir_deleted' => 'Would delete empty directory: :path',
     ],
 
     'exception' => [

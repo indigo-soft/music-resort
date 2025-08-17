@@ -6,6 +6,7 @@ if (!function_exists('__')) {
     require_once __DIR__ . '/../src/Helpers/helpers.php';
 }
 
+use MusicResort\Command\CleanEmptyDirsCommand;
 use MusicResort\Command\CleanMp3Command;
 use MusicResort\Command\DeduplicateMp3Command;
 use MusicResort\Command\FixExtensionsCommand;
@@ -23,6 +24,7 @@ $application->add(new ResortMp3Command());
 $application->add(new DeduplicateMp3Command());
 $application->add(new FixExtensionsCommand());
 $application->add(new CleanMp3Command());
+$application->add(new CleanEmptyDirsCommand());
 try {
     $application->run();
 } catch (Exception $e) {

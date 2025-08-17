@@ -23,6 +23,8 @@
       <entry_point TYPE="phpMethod" FQNAME="\MusicResort\Command\FixExtensionsCommand configure" />
       <entry_point TYPE="phpMethod" FQNAME="\MusicResort\Service\Mp3CleanService __construct" />
       <entry_point TYPE="phpClass" FQNAME="\MusicResort\Service\Mp3CleanService" />
+      <entry_point TYPE="phpMethod" FQNAME="\MusicResort\Service\EmptyDirsCleanupService __construct" />
+      <entry_point TYPE="phpClass" FQNAME="\MusicResort\Service\EmptyDirsCleanupService" />
     </entry_point>
     <pattern value="\Root\MusicLocal\Service\FileResortService" member="__construct" />
     <pattern value="\Root\MusicLocal\Service\FileResortService" />
@@ -45,5 +47,7 @@
     <pattern value="\MusicResort\Command\FixExtensionsCommand" member="configure" />
     <pattern value="\MusicResort\Service\Mp3CleanService" member="__construct" />
     <pattern value="\MusicResort\Service\Mp3CleanService" />
+    <pattern value="\MusicResort\Service\EmptyDirsCleanupService" member="__construct" />
+    <pattern value="\MusicResort\Service\EmptyDirsCleanupService" />
   </component>
 </project>
