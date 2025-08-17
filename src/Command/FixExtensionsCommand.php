@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace MusicResort\Command;
 
-use MusicResort\Component\ConsoleStyle;
 use MusicResort\Service\ConsoleCommandService;
 use MusicResort\Service\FixExtensionsService;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -13,6 +12,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'music:fix-extensions',
@@ -43,7 +43,7 @@ final class FixExtensionsCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new ConsoleStyle($input, $output);
+        $io = new SymfonyStyle($input, $output);
         $commandService = new ConsoleCommandService($input, $output);
         $sourceDir = $commandService->getSourceDir();
         $service = new FixExtensionsService($sourceDir, $io, $commandService->isDryRun());

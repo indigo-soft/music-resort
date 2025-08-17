@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace MusicResort\Service;
 
-use MusicResort\Component\ConsoleStyle;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
@@ -14,14 +14,14 @@ final class FileResortService
 {
     private const int MAX_PATH_LENGTH = 150;
     private Filesystem $filesystem;
-    private ConsoleStyle $io;
+    private SymfonyStyle $io;
     private string $destinationDir;
     private bool $dryRun;
     private string|int $artist;
     private string|int $title;
 
     public function __construct(
-        ConsoleStyle $io,
+        SymfonyStyle $io,
         string       $destinationDir,
         bool         $dryRun,
         string|int   $artist,

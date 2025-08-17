@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace MusicResort\Service;
 
 use Exception;
-use MusicResort\Component\ConsoleStyle;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 use Throwable;
@@ -14,10 +14,10 @@ use Throwable;
 final class FixExtensionsService
 {
     private string $sourceDir;
-    private ConsoleStyle $io;
+    private SymfonyStyle $io;
     private bool $dryRun;
 
-    public function __construct(string $sourceDir, ConsoleStyle $io, bool $dryRun = false)
+    public function __construct(string $sourceDir, SymfonyStyle $io, bool $dryRun = false)
     {
         $this->sourceDir = $sourceDir;
         $this->io = $io;
