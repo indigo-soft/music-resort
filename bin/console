@@ -17,7 +17,7 @@ use Symfony\Component\Console\Application;
 ConfigService::init(dirname(__DIR__));
 LocalizationService::setLocale(ConfigService::get('app.default_lang'));
 
-$application = new Application('MP3 Resort Tool', '1.0.0');
+$application = new Application('Music Resort Tool', '1.0.0');
 $application->add(new ResortMp3Command());
 $application->add(new DeduplicateMp3Command());
 $application->add(new FixExtensionsCommand());

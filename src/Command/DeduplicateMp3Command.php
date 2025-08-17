@@ -15,7 +15,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
-    name: 'mp3:deduplicate',
+    name: 'music:deduplicate',
     description: 'Deduplicate audio files by artist and title'
 )]
 final class DeduplicateMp3Command extends Command

@@ -15,7 +15,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
-    name: 'mp3:resort',
+    name: 'music:resort',
     description: 'Sort MP3 files by artist into separate folders'
 )]
 final class ResortMp3Command extends Command

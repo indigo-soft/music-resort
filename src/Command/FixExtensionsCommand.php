@@ -15,7 +15,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
-    name: 'files:fix-extensions',
+    name: 'music:fix-extensions',
     description: 'Fix file extensions based on metadata'
 )]
 final class FixExtensionsCommand extends Command
