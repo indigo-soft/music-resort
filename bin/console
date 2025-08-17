@@ -11,6 +11,7 @@ use MusicResort\Command\CleanMp3Command;
 use MusicResort\Command\DeduplicateMp3Command;
 use MusicResort\Command\FixExtensionsCommand;
 use MusicResort\Command\ResortMp3Command;
+use MusicResort\Command\RunAllCommand;
 use MusicResort\Service\ConfigService;
 use MusicResort\Service\LocalizationService;
 use Symfony\Component\Console\Application;
@@ -25,6 +26,7 @@ $application->add(new DeduplicateMp3Command());
 $application->add(new FixExtensionsCommand());
 $application->add(new CleanMp3Command());
 $application->add(new CleanEmptyDirsCommand());
+$application->add(new RunAllCommand());
 try {
     $application->run();
 } catch (Exception $e) {

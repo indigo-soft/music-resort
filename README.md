@@ -21,41 +21,31 @@ Read this in Ukrainian: [README_uk](./docs/README_uk.md)
 
 ## Usage
 
+- ### Run all steps (orchestrated)
+
+    ```
+    php bin/console music:all <source_directory> [destination_directory] [--dry-run]
+    ```
+
+  Order:
+    1) music:resort (skipped if destination_directory not provided)
+    2) music:fix-extensions
+    3) music:deduplicate
+    4) music:clean
+    5) music:clean-empty-dirs
+
 - ### Sort music into artist folders
 
     ```
-    php bin/console music:resort <source_directory> <destination_directory>
+    php bin/console music:resort <source_directory> <destination_directory> [--dry-run]
     ```
 
-    - **Windows:**
-
-        ```
-        php bin/console music:resort "C:\Music\Unsorted" "C:\Music\Sorted"
-        ```
-
-    - **Linux/Mac:**
-
-        ```
-        php bin/console music:resort "/home/user/music/unsorted" "/home/user/music/sorted"
-        ```
 
 - ### Deduplicate music in a folder
 
     ```
-    php bin/console music:deduplicate <source_directory>
+    php bin/console music:deduplicate <source_directory> [--dry-run]
     ```
-
-    - **Windows:**
-
-        ```
-        php bin/console music:deduplicate "C:\Music\Unsorted"
-        ```
-
-    - **Linux/Mac:**
-
-        ```
-        php bin/console music:deduplicate "/home/user/music/unsorted"
-        ```
 
 - ### Fix file extensions based on metadata
 
@@ -63,35 +53,17 @@ Read this in Ukrainian: [README_uk](./docs/README_uk.md)
     php bin/console music:fix-extensions <source_directory> [--dry-run]
     ```
 
-    - **Windows:**
-
-        ```
-        php bin/console music:fix-extensions "C:\\Music\\Unsorted" --dry-run
-        ```
-
-    - **Linux/Mac:**
-
-        ```
-        php bin/console music:fix-extensions "/home/user/music/unsorted" --dry-run
-        ```
-
 - ### Clean invalid/corrupted files
 
     ```
     php bin/console music:clean <source_directory> [--dry-run]
     ```
 
-    - **Windows:**
+- ### Remove empty folders
 
-        ```
-        php bin/console music:clean "C:\\Music\\Unsorted" --dry-run
-        ```
-
-    - **Linux/Mac:**
-
-        ```
-        php bin/console music:clean "/home/user/music/unsorted" --dry-run
-        ```
+    ```
+    php bin/console music:clean-empty-dirs <source_directory> [--dry-run]
+    ```
 
 ## Features
 
@@ -132,15 +104,23 @@ Read this in Ukrainian: [README_uk](./docs/README_uk.md)
 ```
 ├── bin/
 │   └── console                         # Console application entry point
+├── config/
+│   └── app.php                         # App configuration (locale, debug)
 ├── src/
 │   ├── Command/
-│   │   ├── ResortMp3Command.php        # Resort command
-│   │   └── DeduplicateMp3Command.php   # Deduplication command
+│   │   ├── ResortMp3Command.php        # Resort music by artists
+│   │   ├── DeduplicateMp3Command.php   # Remove duplicate audio files
+│   │   ├── CleanMp3Command.php         # Clean invalid/corrupted files
+│   │   ├── CleanEmptyDirsCommand.php   # Remove empty directories
+│   │   ├── FixExtensionsCommand.php    # Fix file extensions by metadata
+│   │   └── RunAllCommand.php           # Run all steps sequentially
 │   ├── Service/
-│   │   ├── Mp3ResortService.php        # Resorting logic
-│   │   └── Mp3DeduplicateService.php   # Deduplication logic
-│   └── ...
+│   ├── Exception/
+│   └── Helpers/
+├── lang/
+├── samples/                            # Example folders and files
 ├── composer.json                       # Project dependencies
+├── LICENSE.md                          # License
 └── README.md                           # Documentation
 ```
 
@@ -157,7 +137,7 @@ Read this in Ukrainian: [README_uk](./docs/README_uk.md)
   `lang/en/console.php`).
 - Default locale — `en` (see `config/app.php` → `default_lang`).
 - You can change the locale via .env: `DEFAULT_LANG=uk`, or in code:
-  `\Root\MusicLocal\Service\LocalizationService::setLocale('uk')`.
+  `\MusicResort\Service\LocalizationService::setLocale('uk')`.
 - To add a new language: create the directory `lang/<locale>/` and the translation file `console.php` with the same
   keys.
 
@@ -167,7 +147,7 @@ Example .env:
 # Force dry-run for all commands
 DEBUG=true
 # CLI interface locale
-DEFAULT_LANG=uk
+DEFAULT_LANG=en
 ```
 
 ## Example output
@@ -198,13 +178,19 @@ MP3 File Resorting
 ```
 php bin/console music:resort --help
 php bin/console music:deduplicate --help
+php bin/console music:fix-extensions --help
+php bin/console music:clean --help
+php bin/console music:clean-empty-dirs --help
 ```
 
 ### Simulation mode:
 
 ```
-php bin/console mp3:resort <source> <destination> --dry-run
-php bin/console mp3:deduplicate <source> --dry-run
+php bin/console music:resort <source> <destination> --dry-run
+php bin/console music:deduplicate <source> --dry-run
+php bin/console music:fix-extensions --dry-run
+php bin/console music:clean --dry-run
+php bin/console music:clean-empty-dirs --dry-run
 ```
 
 ### Show version:
@@ -246,9 +232,9 @@ tests/
     composer install
     ```
 2. #### Run all tests:
-    ```
-    php vendor/bin/pest
-    ```
+   ```
+   php vendor/bin/pest
+   ```
 
 3. #### Run only unit tests:
     ```

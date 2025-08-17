@@ -7,6 +7,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class ConsoleCommandService
 {
+    public const string DEST_ARG_NAME = 'destination';
+    public const string SRC_ARG_NAME = 'source';
+    public const string DRYRUN_OPT_NAME = 'dry-run';
     public InputInterface $input;
     public OutputInterface $output;
 
@@ -25,7 +28,7 @@ final class ConsoleCommandService
      */
     public function isDryRun(): bool
     {
-        return $this->input->getOption('dry-run') || ConfigService::get('app.debug');
+        return $this->input->getOption(self::DRYRUN_OPT_NAME) || ConfigService::get('app.debug');
     }
 
     /**
@@ -33,14 +36,18 @@ final class ConsoleCommandService
      */
     public function getSourceDir(): string
     {
-        return (string)$this->input->getArgument('source');
+        return (string)$this->input->getArgument(self::SRC_ARG_NAME);
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getDestinationDir(): string
+    public function getDestinationDir(): ?string
     {
-        return (string)$this->input->getArgument('destination');
+        if ($this->input->hasArgument(self::DEST_ARG_NAME)) {
+            return $this->input->getArgument(self::DEST_ARG_NAME);
+        }
+
+        return null;
     }
 }

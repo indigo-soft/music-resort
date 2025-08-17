@@ -19,59 +19,48 @@ chmod +x bin/console
 
 ## Використання
 
+- ### Запуск усіх кроків (оркестрація)
+
+    ```
+    php bin/console music:all <source_directory> [destination_directory] [--dry-run]
+    ```
+
+  Порядок виконання:
+    1) music:resort (пропускається, якщо не вказано destination_directory)
+    2) music:fix-extensions
+    3) music:deduplicate
+    4) music:clean
+    5) music:clean-empty-dirs
+
 - ### Розсортування музики по теках виконавців
 
     ```
-    php bin/console mp3:resort <source_directory> <destination_directory>
+    php bin/console music:resort <source_directory> <destination_directory>
     ```
-
-    - **Windows:**
-
-      ```
-      php bin/console mp3:resort "C:\Music\Unsorted" "C:\Music\Sorted"
-      ```
-
-    - **Linux/Mac:**
-
-      ```
-      php bin/console mp3:resort "/home/user/music/unsorted" "/home/user/music/sorted"
-      ```
 
 - ### Дедублікація музики в теці
 
     ```
-    php bin/console mp3:deduplicate <source_directory>
+    php bin/console music:deduplicate <source_directory>
     ```
-
-    - **Windows:**
-
-      ```
-      php bin/console mp3:deduplicate "C:\Music\Unsorted"
-      ```
-
-    - **Linux/Mac:**
-
-      ```
-      php bin/console mp3:deduplicate "/home/user/music/unsorted"
-      ```
 
 - ### Виправлення розширень файлів за метаданими
 
     ```
-    php bin/console files:fix-extensions <source_directory> [--dry-run]
+    php bin/console music:fix-extensions <source_directory> [--dry-run]
     ```
 
-    - **Windows:**
+- ### Очищення невалідних/пошкоджених файлів
 
-      ```
-      php bin/console files:fix-extensions "C:\Music\Unsorted" --dry-run
-      ```
+    ```
+    php bin/console music:clean <source_directory> [--dry-run]
+    ```
 
-    - **Linux/Mac:**
+- ### Видалення порожніх тек
 
-      ```
-      php bin/console files:fix-extensions "/home/user/music/unsorted" --dry-run
-      ```
+    ```
+    php bin/console music:clean-empty-dirs <source_directory> [--dry-run]
+    ```
 
 ## Функціональність
 
@@ -112,15 +101,22 @@ chmod +x bin/console
 ```
 ├── bin/
 │   └── console                         # Точка входу консольної програми
+├── config/
+│   └── app.php                         # Налаштування застосунку (локаль, debug)
 ├── src/
 │   ├── Command/
-│   │   ├── ResortMp3Command.php        # Команда сортування
-│   │   └── DeduplicateMp3Command.php   # Команда дедублікації
+│   │   ├── ResortMp3Command.php        # Сортування музики за виконавцями
+│   │   ├── DeduplicateMp3Command.php   # Видалення дублікатів аудіо
+│   │   ├── CleanMp3Command.php         # Очищення невалідних/пошкоджених файлів
+│   │   ├── CleanEmptyDirsCommand.php   # Видалення порожніх тек
+│   │   ├── FixExtensionsCommand.php    # Виправлення розширень за метаданими
+│   │   └── RunAllCommand.php           # Запуск усіх кроків послідовно
 │   ├── Service/
-│   │   ├── Mp3ResortService.php        # Логіка сортування
-│   │   └── Mp3DeduplicateService.php   # Логіка дедублікації
-│   └── ...
-├── composer.json                       # Залежності проекту
+│   ├── Exception/
+│   └── Helpers/
+├── lang/
+├── samples/                            # Приклади тек і файлів
+├── LICENSE.md                          # Ліцензія
 └── README.md                           # Документація
 ```
 
@@ -137,7 +133,7 @@ chmod +x bin/console
   `lang/en/console.php`).
 - Базова локаль за замовчуванням — `en` (див. `config/app.php` → `default_lang`).
 - Змінити локаль можна через .env: `DEFAULT_LANG=uk`, або на рівні коду:
-  `\Root\MusicLocal\Service\LocalizationService::setLocale('uk')`.
+  `\MusicResort\Service\LocalizationService::setLocale('uk')`.
 - Додавання нової мови: створіть директорію `lang/<locale>/` і файл перекладу `console.php` з тими ж ключами.
 
 Приклад .env:
@@ -175,15 +171,21 @@ MP3 File Resorting
 ### Перегляд довідки:
 
 ```
-php bin/console mp3:resort --help
-php bin/console mp3:deduplicate --help
+php bin/console music:resort --help
+php bin/console music:deduplicate --help
+php bin/console music:fix-extensions --help
+php bin/console music:clean --help
+php bin/console music:clean-empty-dirs --help
 ```
 
 ### Режим симуляції:
 
 ```
-php bin/console mp3:resort <source> <destination> --dry-run
-php bin/console mp3:deduplicate <source> --dry-run
+php bin/console music:resort <source> <destination> --dry-run
+php bin/console music:deduplicate <source> --dry-run
+php bin/console music:fix-extensions --dry-run
+php bin/console music:clean --dry-run
+php bin/console music:clean-empty-dirs --dry-run
 ```
 
 ### Перегляд версії:
