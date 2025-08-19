@@ -20,16 +20,26 @@
     "prefer-stable": true,
     "require": {
         "php": ">=8.4",
-        "symfony/console": "^7.0",
-        "symfony/finder": "^7.0",
-        "symfony/filesystem": "^7.0",
-        "james-heinrich/getid3": "^1.9",
-        "symfony/string": "^7.3",
-        "symfony/translation-contracts": "^3.6"
+        "symfony/console": "^7.3.0",
+        "symfony/finder": "^7.3.0",
+        "symfony/filesystem": "^7.3.0",
+        "symfony/process": "^7.3.0",
+        "james-heinrich/getid3": "1.9.*",
+        "symfony/string": "^7.3.0",
+        "symfony/translation-contracts": "^3.6.0"
     },
     "require-dev": {
-        "pestphp/pest": "^2.0",
-        "symfony/var-dumper": "^7.3"
+        "friendsofphp/php-cs-fixer": "^3.86.0",
+        "pestphp/pest": "^3.8.0",
+        "phpstan/phpstan": "^2.1.0",
+        "symfony/var-dumper": "^7.3.0"
+    },
+    "scripts": {
+        "test": "pest -d",
+        "cs": "php-cs-fixer fix --diff --dry-run",
+        "fix": "php-cs-fixer fix",
+        "stan": "phpstan analyse src --memory-limit=1G",
+        "lint": "php-cs-fixer fix && phpstan analyse src --memory-limit=1G"
     },
     "config": {
         "optimize-autoloader": true,

@@ -1,0 +1,12 @@
+parameters:
+  level: 1
+  paths:
+    - src
+  bootstrapFiles:
+    - vendor/autoload.php
+  # Treat PHPDoc types as certain to be stricter
+  treatPhpDocTypesAsCertain: true
+  # Exclude generated/vendor directories implicitly
+  excludePaths:
+    - vendor
+    - samples

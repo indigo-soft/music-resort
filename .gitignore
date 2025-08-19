@@ -33,3 +33,4 @@
 !/samples/.gitkeep
 !/samples/error-sample.mp3
 /samples
+/.php-cs-fixer.cache
