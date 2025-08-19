@@ -4,6 +4,7 @@ Console commands for automatically sorting music files (mp3, flac, m4a) by artis
 audio.
 
 Read this in Ukrainian: [README_uk](./docs/README_uk.md)
+Proposals for improvements (UA): [IMPROVEMENTS_uk](./docs/IMPROVEMENTS_uk.md)
 
 ## Installation
 
@@ -24,11 +25,11 @@ Read this in Ukrainian: [README_uk](./docs/README_uk.md)
 - ### Run all steps (orchestrated)
 
     ```
-    php bin/console music:all <source_directory> [destination_directory] [--dry-run]
+    php bin/console music:all <source_directory> [destination_directory] [--dry-run] [--concurrency=<N>]
     ```
 
   Order:
-    1) music:resort (skipped if destination_directory not provided)
+    1) music:resort (skipped if destination_directory is not provided)
     2) music:fix-extensions
     3) music:deduplicate
     4) music:clean
@@ -37,8 +38,12 @@ Read this in Ukrainian: [README_uk](./docs/README_uk.md)
 - ### Sort music into artist folders
 
     ```
-    php bin/console music:resort <source_directory> <destination_directory> [--dry-run]
+    php bin/console music:resort <source_directory> <destination_directory> [--dry-run] [--concurrency=<N>]
     ```
+
+  Notes:
+    - Use --concurrency to run multiple workers in parallel (Windows-friendly, uses Symfony Process).
+    - Defaults to 1 (sequential).
 
 
 - ### Deduplicate music in a folder

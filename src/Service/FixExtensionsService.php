@@ -25,7 +25,7 @@ final class FixExtensionsService
     }
 
     /**
-     * Fix file extensions based on metadata
+     * Fix file extensions based on metadata.
      *
      * @return array{status:int, processed:int, errors:int}
      */
@@ -64,14 +64,17 @@ final class FixExtensionsService
     {
         if (!is_dir($this->sourceDir)) {
             $this->io->error(__('console.error.source_not_exists', ['path' => $this->sourceDir]));
+
             return false;
         }
+
         return true;
     }
 
     private function prepareFinder(): Finder
     {
         $finder = new Finder();
+
         return $finder->files()->in($this->sourceDir);
     }
 
@@ -86,6 +89,7 @@ final class FixExtensionsService
     }
 
     /**
+     * @param Finder $finder
      * @return array{0:int,1:int}
      */
     private function processFiles(Finder $finder): array
@@ -105,6 +109,8 @@ final class FixExtensionsService
     }
 
     /**
+     * @param string $path
+     * @param Filesystem $fs
      * @return array{0:int,1:int}
      */
     private function processSingleFile(string $path, Filesystem $fs): array
@@ -113,11 +119,14 @@ final class FixExtensionsService
             return $this->handleExtensionFix($path, $fs);
         } catch (Throwable $e) {
             $this->io->warning(__('console.warning.file_skipped', ['file' => basename($path), 'message' => $e->getMessage()]));
+
             return [0, 1];
         }
     }
 
     /**
+     * @param string $path
+     * @param Filesystem $fs
      * @return array{0:int,1:int}
      */
     private function handleExtensionFix(string $path, Filesystem $fs): array
@@ -130,12 +139,16 @@ final class FixExtensionsService
         }
 
         $target = $this->buildTargetPath($path, $expected, $fs);
+
         return $this->dryRun
             ? $this->logDryRunRename($path, $target)
             : $this->performRename($fs, $path, $target);
     }
 
     /**
+     * @param Filesystem $fs
+     * @param string $path
+     * @param string $target
      * @return array{0:int,1:int}
      */
     private function performRename(Filesystem $fs, string $path, string $target): array
@@ -143,19 +156,24 @@ final class FixExtensionsService
         try {
             $fs->rename($path, $target);
             $this->io->info(__('console.info.renamed', ['from' => basename($path), 'to' => basename($target)]));
+
             return [1, 0];
         } catch (Exception $e) {
             $this->io->warning(__('console.warning.file_skipped', ['file' => basename($path), 'message' => $e->getMessage()]));
+
             return [0, 1];
         }
     }
 
     /**
+     * @param string $path
+     * @param string $target
      * @return array{0:int,1:int}
      */
     private function logDryRunRename(string $path, string $target): array
     {
         $this->io->note(__('console.note.dry_renamed', ['from' => basename($path), 'to' => basename($target)]));
+
         return [1, 0];
     }
 
@@ -167,6 +185,7 @@ final class FixExtensionsService
         for ($i = 1; $fs->exists($target); $i++) {
             $target = $dir . DIRECTORY_SEPARATOR . $base . '_' . $i . '.' . $expectedExt;
         }
+
         return $target;
     }
 }

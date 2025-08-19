@@ -8,6 +8,7 @@ final class LocalizationService
 {
     private static string $locale = 'uk';
     private static ?string $basePath = null;
+
     /** @var array<string, array<string, mixed>> */
     private static array $cache = [];
 
@@ -22,6 +23,7 @@ final class LocalizationService
 
     /**
      * @return string
+     *
      * @noinspection PhpUnused
      */
     public static function getLocale(): string
@@ -31,11 +33,16 @@ final class LocalizationService
 
     /**
      * Laravel-like translator
-     * Example: __('console.success.resorted', ['processed' => 10])
+     * Example: __('console.success.resorted', ['processed' => 10]).
+     *
+     * @param string $key
+     * @param array $replace
+     * @param ?string $locale
+     * @return string
      */
     public static function get(string $key, array $replace = [], ?string $locale = null): string
     {
-        $locale = $locale ?? self::$locale;
+        $locale ??= self::$locale;
         [$file, $innerKey] = self::splitKey($key);
 
         $lines = self::loadFile($file, $locale);
@@ -60,10 +67,13 @@ final class LocalizationService
             // the default file is 'console'
             return ['console', $key];
         }
+
         return [substr($key, 0, $pos), substr($key, $pos + 1)];
     }
 
     /**
+     * @param string $file
+     * @param string $locale
      * @return array<string, mixed>
      */
     private static function loadFile(string $file, string $locale): array
@@ -88,8 +98,12 @@ final class LocalizationService
     }
 
     /**
-     * Dot-notation array get
+     * Dot-notation array get.
+     *
      * @param array<string, mixed> $array
+     * @param string $key
+     * @param mixed|null $default
+     * @return mixed
      */
     private static function dataGet(array $array, string $key, mixed $default = null): mixed
     {
@@ -104,6 +118,7 @@ final class LocalizationService
                 return $default;
             }
         }
+
         return $array;
     }
 
@@ -123,6 +138,7 @@ final class LocalizationService
             $search[] = ':' . $key;
             $values[] = (string)$value;
         }
+
         return str_replace($search, $values, $line);
     }
 }

@@ -64,6 +64,55 @@ final class Mp3ResortService
     }
 
     /**
+     * Collect a list of files to process using the same Finder settings.
+     *
+     * @return string[] array of absolute file paths
+     */
+    public function listFiles(): array
+    {
+        $finder = $this->prepareFinder();
+        $paths = [];
+        foreach ($finder as $file) {
+            $real = $file->getRealPath();
+            if ($real !== false) {
+                $paths[] = $real;
+            }
+        }
+
+        return $paths;
+    }
+
+    /**
+     * Process a given list of files (used by worker processes in parallel mode).
+     *
+     * @param string[] $paths
+     * @return array{status:int, processed:int, errors:int}
+     */
+    public function processFilesFromList(array $paths): array
+    {
+        $processedCount = 0;
+        $errorCount = 0;
+
+        $this->io->title(__('console.title.resort'));
+        $this->io->progressStart(count($paths));
+
+        foreach ($paths as $path) {
+            try {
+                $this->processSingleFile($path);
+                $processedCount++;
+            } catch (Exception $e) {
+                $errorCount++;
+                $this->io->warning(__('console.warning.file_skipped', ['file' => basename($path), 'message' => $e->getMessage()]));
+            }
+            $this->io->progressAdvance();
+        }
+
+        $this->io->progressFinish();
+
+        return $this->buildResult($processedCount, $errorCount);
+    }
+
+    /**
      * @return void
      */
     private function ensureDestinationDirectory(): void
@@ -96,8 +145,10 @@ final class Mp3ResortService
     {
         if (!is_dir($this->sourceDir)) {
             $this->io->error(__('console.error.source_not_exists', ['path' => $this->sourceDir]));
+
             return false;
         }
+
         return true;
     }
 
@@ -107,7 +158,13 @@ final class Mp3ResortService
     private function prepareFinder(): Finder
     {
         $finder = new Finder();
-        $finder->files()->in($this->sourceDir)->name(['*.mp3', '*.flac', '*.m4a']);
+        $finder
+            ->files()
+            ->ignoreVCS(true)
+            ->ignoreDotFiles(true)
+            ->in($this->sourceDir)
+            ->exclude(['@eaDir', '.AppleDouble', '.AppleDB'])
+            ->name(['*.mp3', '*.flac', '*.m4a']);
 
         return $finder;
     }
@@ -164,15 +221,19 @@ final class Mp3ResortService
         $metaData = new MusicMetadataService($filePath);
         $artist = $this->extractFirstArtist($metaData->getArtist());
         $title = $metaData->getTitle();
-        $fileService = new FileResortService($this->io,
+        $fileService = new FileResortService(
+            $this->io,
             $this->destinationDir,
             $this->dryRun,
             $artist,
-            $title);
+            $title
+        );
         $fileService->moveToArtistFolder($filePath);
     }
 
     /**
+     * @param int $processed
+     * @param int $errors
      * @return array{status:int, processed:int, errors:int}
      */
     private function buildResult(int $processed, int $errors): array
@@ -200,6 +261,7 @@ final class Mp3ResortService
                 return $first;
             }
         }
+
         return trim($artist);
     }
 }

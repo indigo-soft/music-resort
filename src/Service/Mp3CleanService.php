@@ -173,12 +173,8 @@ final class Mp3CleanService
 
             // If bitrate exists and equals 0 => suspicious
             $bitrate = $meta->getBitrate();
-            if ($bitrate === 0) {
-                return false;
-            }
 
-            return true;
-
+            return !($bitrate === 0);
         } catch (MusicMetadataException) {
             return false;
         }
@@ -196,6 +192,7 @@ final class Mp3CleanService
         // dry-run
         if ($this->dryRun) {
             $this->getNote($fileName);
+
             return Command::SUCCESS;
         }
 
@@ -207,7 +204,6 @@ final class Mp3CleanService
             ));
 
             return Command::SUCCESS;
-
         } catch (Exception $e) {
             $this->io->warning(__(
                 'console.warning.file_skipped',

@@ -9,7 +9,7 @@ if (!function_exists('__')) {
      * Translate the given message.
      *
      * @param string $key
-     * @param array $replace
+     * @param string[] $replace
      * @param string|null $locale
      * @return string
      */

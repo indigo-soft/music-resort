@@ -34,6 +34,7 @@ final class RunAllCommand extends Command
             ->addArgument('source', InputArgument::REQUIRED, __('console.arg.source'))
             ->addArgument('destination', InputArgument::OPTIONAL, __('console.arg.destination'))
             ->addOption('dry-run', null, InputOption::VALUE_NONE, __('console.opt.dry_run'))
+            ->addOption('concurrency', 'c', InputOption::VALUE_REQUIRED, 'Number of parallel workers for resort step (default 1).', 1)
             ->setHelp('Runs commands in order: music:resort (if destination provided), music:fix-extensions, music:deduplicate, music:clean, music:clean-empty-dirs.');
     }
 
@@ -44,6 +45,7 @@ final class RunAllCommand extends Command
         $sourceDir = $commandService->getSourceDir();
         $destinationDir = $commandService->getDestinationDir();
         $dryRun = $commandService->isDryRun();
+        $concurrency = (int)$input->getOption('concurrency');
 
         $application = $this->getApplication();
         if ($application === null) {
@@ -58,7 +60,7 @@ final class RunAllCommand extends Command
         $run = $this->runConsoleCommand($application, $io, $dryRun, $output);
 
         // 1) music:resort (only if destination provided)
-        $status = $this->runResortIfNeeded($destinationDir, $sourceDir, $run, $io);
+        $status = $this->runResortIfNeeded($destinationDir, $sourceDir, $concurrency, $run, $io);
         if ($status !== Command::SUCCESS) {
             return $status;
         }
@@ -87,7 +89,8 @@ final class RunAllCommand extends Command
         Application     $application,
         SymfonyStyle    $io,
         bool            $dryRun,
-        OutputInterface $output): Closure
+        OutputInterface $output
+    ): Closure
     {
         return function (string $name, array $arguments) use (
             $application,
@@ -95,7 +98,6 @@ final class RunAllCommand extends Command
             $dryRun,
             $output
         ): int {
-
             // Ensure the correct command is targeted
             $arguments = array_merge(['command' => $name], $arguments);
             if ($dryRun) {
@@ -115,6 +117,7 @@ final class RunAllCommand extends Command
      *
      * @param string|null $destinationDir
      * @param string $sourceDir
+     * @param int $concurrency
      * @param Closure $run
      * @param SymfonyStyle $io
      * @return int
@@ -122,17 +125,25 @@ final class RunAllCommand extends Command
     private function runResortIfNeeded(
         ?string      $destinationDir,
         string       $sourceDir,
+        int          $concurrency,
         Closure      $run,
-        SymfonyStyle $io): int
+        SymfonyStyle $io
+    ): int
     {
         if ($destinationDir !== null) {
-            return $run('music:resort', [
+            $args = [
                 'source' => $sourceDir,
                 'destination' => $destinationDir,
-            ]);
+            ];
+            if ($concurrency > 1) {
+                $args['--concurrency'] = $concurrency;
+            }
+
+            return $run('music:resort', $args);
         }
 
         $io->note('Destination is not provided — skipping music:resort step.');
+
         return Command::SUCCESS;
     }
 
@@ -147,7 +158,8 @@ final class RunAllCommand extends Command
     private function runStep(
         string  $commandName,
         string  $sourceDir,
-        Closure $run): int
+        Closure $run
+    ): int
     {
         return $run($commandName, [
             'source' => $sourceDir,

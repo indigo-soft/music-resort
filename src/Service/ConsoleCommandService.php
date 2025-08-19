@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MusicResort\Service;
 
 use Symfony\Component\Console\Input\InputInterface;
@@ -10,6 +12,7 @@ final class ConsoleCommandService
     public const string DEST_ARG_NAME = 'destination';
     public const string SRC_ARG_NAME = 'source';
     public const string DRYRUN_OPT_NAME = 'dry-run';
+
     public InputInterface $input;
     public OutputInterface $output;
 

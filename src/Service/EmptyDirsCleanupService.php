@@ -27,7 +27,7 @@ final class EmptyDirsCleanupService
     }
 
     /**
-     * Remove empty directories in the provided folder (recursively, excluding the root itself)
+     * Remove empty directories in the provided folder (recursively, excluding the root itself).
      *
      * @return array{status:int, processed:int, errors:int, removed:int}
      */
@@ -36,8 +36,11 @@ final class EmptyDirsCleanupService
         $this->announceDryRun();
 
         if (!$this->isSourceDirValid()) {
-            $this->io->error(__('console.error.source_not_exists',
-                ['path' => $this->sourceDir]));
+            $this->io->error(__(
+                'console.error.source_not_exists',
+                ['path' => $this->sourceDir]
+            ));
+
             return $this->buildResult(Command::FAILURE, 0, 0, 0);
         }
 
@@ -53,7 +56,8 @@ final class EmptyDirsCleanupService
             Command::SUCCESS,
             $processed,
             $errors,
-            $removed);
+            $removed
+        );
     }
 
     /**
@@ -85,7 +89,8 @@ final class EmptyDirsCleanupService
         int $status,
         int $processed,
         int $errors,
-        int $removed): array
+        int $removed
+    ): array
     {
         return [
             'status' => $status,
@@ -101,6 +106,7 @@ final class EmptyDirsCleanupService
     private function countDirectories(): int
     {
         $finder = $this->createBaseFinder();
+
         return iterator_count($finder->getIterator());
     }
 
@@ -111,11 +117,12 @@ final class EmptyDirsCleanupService
     {
         $finder = new Finder();
         $finder->directories()->in($this->sourceDir)->depth('>= 0');
+
         return $finder;
     }
 
     /**
-     * Iterate and process all directories, aggregating results
+     * Iterate and process all directories, aggregating results.
      *
      * @return array{0:int,1:int,2:int} [processed, errors, removed]
      */
@@ -149,13 +156,15 @@ final class EmptyDirsCleanupService
         $finder->sort(function ($a, $b) {
             $da = substr_count($a->getRelativePathname(), DIRECTORY_SEPARATOR);
             $db = substr_count($b->getRelativePathname(), DIRECTORY_SEPARATOR);
+
             return $db <=> $da; // deeper first
         });
+
         return $finder;
     }
 
     /**
-     * Process a single directory entry
+     * Process a single directory entry.
      *
      * @param SplFileInfo $dir
      * @param Filesystem $filesystem
@@ -163,7 +172,8 @@ final class EmptyDirsCleanupService
      */
     private function processSingleDirectory(
         SplFileInfo $dir,
-        Filesystem  $filesystem): array
+        Filesystem $filesystem
+    ): array
     {
         $directoryPath = $this->resolvePath($dir);
         if ($directoryPath === null) {
@@ -171,8 +181,10 @@ final class EmptyDirsCleanupService
         }
 
         $processed = 1;
+
         try {
             $removed = $this->removeIfEmpty($directoryPath, $filesystem) ? 1 : 0;
+
             return [$processed, 0, $removed];
         } catch (Throwable $e) {
             // Логуємо як попередження, не зупиняючи весь процес
@@ -180,6 +192,7 @@ final class EmptyDirsCleanupService
                 'file' => basename($directoryPath),
                 'message' => $e->getMessage(),
             ]));
+
             return [$processed, 1, 0];
         }
     }
@@ -191,6 +204,7 @@ final class EmptyDirsCleanupService
     private function resolvePath(SplFileInfo $dir): ?string
     {
         $path = $dir->getRealPath() ?: $dir->getPathname();
+
         return is_string($path) ? $path : null;
     }
 
@@ -228,6 +242,7 @@ final class EmptyDirsCleanupService
         // Quick check using DirectoryIterator skipping dots
         try {
             $it = new FilesystemIterator($dirPath, FilesystemIterator::SKIP_DOTS);
+
             return !$it->valid();
         } catch (Exception) {
             return false;

@@ -22,7 +22,7 @@ final class ConfigService
             return;
         }
 
-        $projectRoot = $projectRoot ?? dirname(__DIR__, 2);
+        $projectRoot ??= dirname(__DIR__, 2);
 
         // 1) Load .env
         self::loadEnv($projectRoot . DIRECTORY_SEPARATOR . '.env');
@@ -44,11 +44,12 @@ final class ConfigService
     }
 
     /**
-     * Get config value by dot notation, e.g. get('app.debug', false)
+     * Get config value by dot notation, e.g. get('app.debug', false).
+     *
      * @param string $key
      * @return int|string|bool
      */
-    public static function get(string $key): int|string|bool
+    public static function get(string $key): bool|int|string
     {
         [$configKey, $paramKey] = explode('.', $key);
         $config = self::$config;
@@ -66,10 +67,11 @@ final class ConfigService
 
     /**
      * Read env value (from loaded .env or existing environment), with optional default.
+     *
      * @param string $key
      * @return string|bool|int
      */
-    private static function env(string $key): string|bool|int
+    private static function env(string $key): bool|int|string
     {
         if (array_key_exists($key, self::$env)) {
             return self::$env[$key];
@@ -137,7 +139,7 @@ final class ConfigService
                 $valueRaw = substr($valueRaw, 1, -1);
             }
             // Expand simple escapes for new line / carriage returns
-            $valueRaw = str_replace(["\\n", "\\r", "\\t"], ["\n", "\r", "\t"], $valueRaw);
+            $valueRaw = str_replace(['\\n', '\\r', '\\t'], ["\n", "\r", "\t"], $valueRaw);
             self::$env[$key] = $valueRaw;
             // Also populate superglobals for broader compatibility
             $_ENV[$key] = $valueRaw;
@@ -148,6 +150,7 @@ final class ConfigService
 
     /**
      * Resolve app config schema into final values.
+     *
      * @param array<string, mixed> $raw
      * @return array<string, mixed>
      */
@@ -155,7 +158,6 @@ final class ConfigService
     {
         $resolved = [];
         foreach ($raw as $key => $definition) {
-
             if (is_array($definition)) {
                 $envName = $definition['name'] ?? $definition['env'] ?? null;
                 $type = strtolower((string)($definition['type'] ?? 'string'));
@@ -180,14 +182,16 @@ final class ConfigService
 
     /**
      * Cast raw env string to requested type with default fallback.
+     *
      * @param string $type
      * @param string|null $raw
      * @param string|int|bool $default
      * @return string|int|bool
      */
-    private static function castValue(string $type, ?string $raw, string|int|bool $default): string|int|bool
+    private static function castValue(string $type, ?string $raw, bool|int|string $default): bool|int|string
     {
         $type = strtolower($type);
+
         return match ($type) {
             'bool', 'boolean' => self::castBool($raw, (bool)$default),
             'int', 'integer' => self::castInt($raw, is_int($default) ? $default : (int)$default),
@@ -199,15 +203,17 @@ final class ConfigService
      * @param string|int|null $raw
      * @param bool $default
      * @return bool
+     *
      * @noinspection PhpUnused
      */
-    private static function castBool(string|int|null $raw, bool $default): bool
+    private static function castBool(int|string|null $raw, bool $default): bool
     {
         if ($raw === null) {
             return $default;
         }
 
         $lower = strtolower(trim($raw));
+
         return match (true) {
             in_array($lower, [1, '1', 'true', 'yes', 'on'], true) => true,
             in_array($lower, [0, '0', 'false', 'no', 'off'], true) => false,
@@ -219,9 +225,10 @@ final class ConfigService
      * @param string|int|null $raw
      * @param int $default
      * @return int
+     *
      * @noinspection PhpUnused
      */
-    private static function castInt(string|int|null $raw, int $default): int
+    private static function castInt(int|string|null $raw, int $default): int
     {
         if ($raw === null || $raw === '') {
             return $default;
@@ -229,6 +236,7 @@ final class ConfigService
         if (is_numeric($raw)) {
             return (int)$raw;
         }
+
         return $default;
     }
 
@@ -236,13 +244,15 @@ final class ConfigService
      * @param string|int|null $raw
      * @param string $default
      * @return string
+     *
      * @noinspection PhpUnused
      */
-    private static function castString(string|int|null $raw, string $default): string
+    private static function castString(int|string|null $raw, string $default): string
     {
         if ($raw === null) {
             return $default;
         }
+
         return (string)$raw;
     }
 }

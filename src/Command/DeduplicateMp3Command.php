@@ -25,7 +25,9 @@ final class DeduplicateMp3Command extends Command
         parent::__construct();
     }
 
-    /** @noinspection PhpUnused */
+    /**
+     * @noinspection PhpUnused
+     */
     protected function configure(): void
     {
         $this
@@ -34,7 +36,9 @@ final class DeduplicateMp3Command extends Command
             ->setHelp(__('console.command.mp3_deduplicate.help'));
     }
 
-    /** @noinspection PhpUnused */
+    /**
+     * @noinspection PhpUnused
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);

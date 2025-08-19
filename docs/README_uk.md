@@ -3,6 +3,8 @@
 Консольні команди для автоматичного сортування музичнх файлів (mp3, flac, m4a) за виконавцями в окремі теки та
 дедублікації аудіо.
 
+Пропозиції щодо покращень: [IMPROVEMENTS_uk](./IMPROVEMENTS_uk.md)
+
 ## Встановлення
 
 1. Встановіть залежності:
@@ -22,7 +24,7 @@ chmod +x bin/console
 - ### Запуск усіх кроків (оркестрація)
 
     ```
-    php bin/console music:all <source_directory> [destination_directory] [--dry-run]
+    php bin/console music:all <source_directory> [destination_directory] [--dry-run] [--concurrency=<N>]
     ```
 
   Порядок виконання:
@@ -35,8 +37,12 @@ chmod +x bin/console
 - ### Розсортування музики по теках виконавців
 
     ```
-    php bin/console music:resort <source_directory> <destination_directory>
+    php bin/console music:resort <source_directory> <destination_directory> [--dry-run] [--concurrency=<N>]
     ```
+
+  Примітки:
+    - Використовуйте --concurrency для запуску кількох воркерів паралельно (сумісно з Windows через Symfony Process).
+    - За замовчуванням = 1 (послідовно).
 
 - ### Дедублікація музики в теці
 

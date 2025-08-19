@@ -8,24 +8,26 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
- *  Filesystem Service
+ *  Filesystem Service.
  */
 final class FileResortService
 {
     private const int MAX_PATH_LENGTH = 150;
+
     private Filesystem $filesystem;
     private SymfonyStyle $io;
     private string $destinationDir;
     private bool $dryRun;
-    private string|int $artist;
-    private string|int $title;
+    private int|string $artist;
+    private int|string $title;
 
     public function __construct(
         SymfonyStyle $io,
-        string       $destinationDir,
-        bool         $dryRun,
-        string|int   $artist,
-        string|int   $title)
+        string     $destinationDir,
+        bool       $dryRun,
+        int|string $artist,
+        int|string $title
+    )
     {
         $this->filesystem = new Filesystem();
         $this->io = $io;
@@ -74,9 +76,10 @@ final class FileResortService
      * @param string|int $title
      * @return string
      */
-    private function buildFileName(string|int $artist, string|int $title): string
+    private function buildFileName(int|string $artist, int|string $title): string
     {
         $raw = $artist . ' - ' . $title;
+
         return $this->sanitizeFileName($raw);
     }
 
@@ -125,7 +128,7 @@ final class FileResortService
      * @param string|int $artist
      * @return string
      */
-    private function sanitizeFolderName(string|int $artist): string
+    private function sanitizeFolderName(int|string $artist): string
     {
         $invalid = ['<', '>', ':', '"', '|', '?', '*', '/', '\\'];
         $sanitized = str_replace($invalid, '', $artist);
@@ -138,7 +141,10 @@ final class FileResortService
     }
 
     /**
-     * Sanitize file name (Windows/Linux/macOS without forbidden characters)
+     * Sanitize file name (Windows/Linux/macOS without forbidden characters).
+     *
+     * @param string $name
+     * @return string
      */
     private function sanitizeFileName(string $name): string
     {
@@ -151,7 +157,7 @@ final class FileResortService
         // Remove control characters and normalize spaces
         $sanitized = preg_replace('/[\x00-\x1F\x7F]+/u', '', $sanitized) ?? '';
         $sanitized = preg_replace('/\s+/', ' ', $sanitized) ?? '';
-        $sanitized = trim($sanitized, " .");
+        $sanitized = trim($sanitized, ' .');
 
         // Limit length (to avoid MAX_PATH issues on Windows with deep paths)
         if (strlen($sanitized) > self::MAX_PATH_LENGTH) {

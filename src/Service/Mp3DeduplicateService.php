@@ -28,6 +28,7 @@ final class Mp3DeduplicateService
 
     /**
      * Deduplicate audio files in the source directory.
+     *
      * @return array{status:int, processed:int, errors:int}
      */
     public function deduplicate(): array
@@ -49,7 +50,9 @@ final class Mp3DeduplicateService
         ];
     }
 
-    /** @return array{0:int,1:int} */
+    /**
+     * @return array{0:int,1:int}
+     */
     private function runFlow(): array
     {
         $finder = $this->buildFinder();
@@ -65,6 +68,7 @@ final class Mp3DeduplicateService
         $this->reportCollisions($collisions);
 
         $this->io->progressFinish();
+
         return [$processed, $errors];
     }
 
@@ -72,8 +76,10 @@ final class Mp3DeduplicateService
     {
         if (!is_dir($this->sourceDir)) {
             $this->io->error(__('console.error.source_not_exists', ['path' => $this->sourceDir]));
+
             return ['status' => Command::FAILURE, 'processed' => 0, 'errors' => 0];
         }
+
         return null;
     }
 
@@ -81,6 +87,7 @@ final class Mp3DeduplicateService
     {
         $finder = new Finder();
         $finder->files()->in($this->sourceDir)->name(self::SUPPORTED_EXTENSIONS);
+
         return $finder;
     }
 
@@ -90,7 +97,9 @@ final class Mp3DeduplicateService
         $this->io->progressStart($total);
     }
 
-    /** @return array{0:array<int,array>,1:int,2:int} */
+    /**
+     * @return array{0:array<int,array>,1:int,2:int}
+     */
     private function collectFileMetas(Finder $finder): array
     {
         $files = [];
@@ -99,13 +108,17 @@ final class Mp3DeduplicateService
         foreach ($finder as $file) {
             $this->handleFinderFile($file, $files, $processed, $errors);
         }
+
         return [$files, $processed, $errors];
     }
 
-    /** @param array<int,array> $files */
+    /**
+     * @param array<int,array> $files
+     */
     private function handleFinderFile(SplFileInfo $file, array &$files, int &$processed, int &$errors): void
     {
         $path = $file->getRealPath();
+
         try {
             if ($path === false) {
                 throw new Exception('Invalid path');
@@ -119,7 +132,9 @@ final class Mp3DeduplicateService
         $this->io->progressAdvance();
     }
 
-    /** @param array<int,array{artist:string,title:string}> $files */
+    /**
+     * @param array<int,array{artist:string,title:string}> $files
+     */
     private function groupByArtistTitle(array $files): array
     {
         $groups = [];
@@ -128,6 +143,7 @@ final class Mp3DeduplicateService
             $groups[$key] ??= [];
             $groups[$key][] = $m;
         }
+
         return $groups;
     }
 
@@ -142,10 +158,13 @@ final class Mp3DeduplicateService
             usort($items, [$this, 'compareItems']);
             $errors += $this->removeFiles(array_slice($items, 1), $fs);
         }
+
         return $errors;
     }
 
-    /** @param array<int,array> $toDelete */
+    /**
+     * @param array<int,array> $toDelete
+     */
     private function removeFiles(array $toDelete, Filesystem $fs): int
     {
         $errors = 0;
@@ -163,16 +182,21 @@ final class Mp3DeduplicateService
                 $this->io->note(__('console.note.dry_deleted', ['file' => $fileName]));
             }
         }
+
         return $errors;
     }
 
-    /** @param array $a @param array $b */
+    /**
+     * @param array $a @param array $b
+     */
     private function compareItems(array $a, array $b): int
     {
         return [$b['duration'], $b['size'], $b['bitrate'], $a['index']] <=> [$a['duration'], $a['size'], $a['bitrate'], $b['index']];
     }
 
-    /** @return array{0:array<int,array{0:string,1:string}>,1:int} */
+    /**
+     * @return array{0:array<int,array{0:string,1:string}>,1:int}
+     */
     private function normalizeSuffixes(): array
     {
         $collisions = [];
@@ -186,10 +210,13 @@ final class Mp3DeduplicateService
             }
             $errors += $this->normalizeSingleFileSuffix($path, $fs, $collisions);
         }
+
         return [$collisions, $errors];
     }
 
-    /** @param array<int,array{0:string,1:string}> $collisions */
+    /**
+     * @param array<int,array{0:string,1:string}> $collisions
+     */
     private function normalizeSingleFileSuffix(string $path, Filesystem $fs, array &$collisions): int
     {
         $info = $this->computeNormalizedPath($path);
@@ -199,12 +226,16 @@ final class Mp3DeduplicateService
         [$base, $newBase, $newPath] = $info;
         if (is_file($newPath)) {
             $collisions[] = [$path, $newPath];
+
             return 0;
         }
+
         return $this->performRenameOrNote($base, $newBase, $path, $newPath, $fs);
     }
 
-    /** @return array{0:string,1:string,2:string}|null */
+    /**
+     * @return array{0:string,1:string,2:string}|null
+     */
     private function computeNormalizedPath(string $path): ?array
     {
         $dir = dirname($path);
@@ -212,8 +243,10 @@ final class Mp3DeduplicateService
         if (preg_match('/^(.*)_([0-9]+)(\.[^.]+)$/', $base, $m)) {
             $newBase = $m[1] . $m[3];
             $newPath = $dir . DIRECTORY_SEPARATOR . $newBase;
+
             return [$base, $newBase, $newPath];
         }
+
         return null;
     }
 
@@ -223,13 +256,16 @@ final class Mp3DeduplicateService
             try {
                 $fs->rename($path, $newPath);
                 $this->io->info(__('console.info.renamed', ['from' => $base, 'to' => $newBase]));
+
                 return 0;
             } catch (Exception $e) {
                 $this->io->warning(__('console.warning.file_skipped', ['file' => $base, 'message' => $e->getMessage()]));
+
                 return 1;
             }
         }
         $this->io->note(__('console.note.dry_renamed', ['from' => $base, 'to' => $newBase]));
+
         return 0;
     }
 
@@ -260,6 +296,7 @@ final class Mp3DeduplicateService
 
         static $idx = 0;
         $idx++;
+
         return [
             'path' => $filePath,
             'size' => $size,
@@ -275,7 +312,7 @@ final class Mp3DeduplicateService
     {
         $s = trim($s);
         $s = preg_replace('/\s+/', ' ', $s) ?? $s;
+
         return strtolower($s);
     }
-
 }
