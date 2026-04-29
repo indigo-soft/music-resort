@@ -86,9 +86,9 @@ final class RunAllCommand extends Command
      * @return Closure
      */
     private function runConsoleCommand(
-        Application  $application,
+        Application $application,
         SymfonyStyle $io,
-        bool         $dryRun,
+        bool        $dryRun,
         OutputInterface $output
     ): Closure
     {
@@ -124,8 +124,8 @@ final class RunAllCommand extends Command
      */
     private function runResortIfNeeded(
         ?string $destinationDir,
-        string  $sourceDir,
-        int     $concurrency,
+        string $sourceDir,
+        int    $concurrency,
         Closure $run,
         SymfonyStyle $io
     ): int
