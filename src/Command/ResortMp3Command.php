@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MusicResort\Command;
 
+use JsonException;
 use MusicResort\Service\ConsoleCommandService;
 use MusicResort\Service\Mp3ResortService;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -42,10 +43,10 @@ final class ResortMp3Command extends Command
     }
 
     /**
-     * @noinspection PhpUnused
-     *
      * @param InputInterface $input
      * @param OutputInterface $output
+     * @return int
+     * @throws JsonException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -63,7 +64,7 @@ final class ResortMp3Command extends Command
             $paths = [];
             if (is_file($workerBatch)) {
                 $json = file_get_contents($workerBatch);
-                $decoded = $json !== false ? json_decode($json, true) : null;
+                $decoded = $json !== false ? json_decode($json, true, 512, JSON_THROW_ON_ERROR) : null;
                 if (is_array($decoded)) {
                     $paths = array_values(array_filter($decoded, static fn($p) => is_string($p) && $p !== ''));
                 }
@@ -73,7 +74,7 @@ final class ResortMp3Command extends Command
             $result = $service->processFilesFromList($paths);
 
             if (is_string($resultJson) && $resultJson !== '') {
-                @file_put_contents($resultJson, json_encode($result));
+                @file_put_contents($resultJson, json_encode($result, JSON_THROW_ON_ERROR));
             }
 
             if ($result['status'] === Command::SUCCESS) {
@@ -150,7 +151,7 @@ final class ResortMp3Command extends Command
             rename($batchFile, $batchJsonFile);
             $batchFile = $batchJsonFile;
 
-            file_put_contents($batchFile, json_encode($batch));
+            file_put_contents($batchFile, json_encode($batch, JSON_THROW_ON_ERROR));
 
             $args = [
                 PHP_BINARY,
@@ -181,7 +182,7 @@ final class ResortMp3Command extends Command
             }
             if (is_file($resultFile)) {
                 $json = file_get_contents($resultFile);
-                $decoded = $json !== false ? json_decode($json, true) : null;
+                $decoded = $json !== false ? json_decode($json, true, 512, JSON_THROW_ON_ERROR) : null;
                 if (is_array($decoded)) {
                     $results['processed'] += (int)($decoded['processed'] ?? 0);
                     $results['errors'] += (int)($decoded['errors'] ?? 0);

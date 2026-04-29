@@ -44,7 +44,7 @@ final class ConfigService
     }
 
     /**
-     * Get config value by dot notation, e.g. get('app.debug', false).
+     * Get config value by dot notation, e.g., get('app.debug', false).
      *
      * @param string $key
      * @return int|string|bool
@@ -181,7 +181,7 @@ final class ConfigService
     }
 
     /**
-     * Cast raw env string to requested type with default fallback.
+     * Cast a raw env string to the requested type with the default fallback.
      *
      * @param string $type
      * @param string|null $raw

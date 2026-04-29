@@ -29,6 +29,12 @@
       <entry_point TYPE="phpClass" FQNAME="\MusicResort\Command\RunAllCommand" />
       <entry_point TYPE="phpMethod" FQNAME="\MusicResort\Command\RunAllCommand __construct" />
       <entry_point TYPE="phpMethod" FQNAME="\MusicResort\Command\RunAllCommand execute" />
+      <entry_point TYPE="phpMethod" FQNAME="\MusicResort\Command\ResortMp3Command execute" />
+      <entry_point TYPE="phpClass" FQNAME="\MusicResort\Command\ResortMp3Command" />
+      <entry_point TYPE="phpMethod" FQNAME="\MusicResort\Command\ResortMp3Command __construct" />
+      <entry_point TYPE="phpMethod" FQNAME="\MusicResort\Command\CleanEmptyDirsCommand execute" />
+      <entry_point TYPE="phpClass" FQNAME="\MusicResort\Command\CleanEmptyDirsCommand" />
+      <entry_point TYPE="phpMethod" FQNAME="\MusicResort\Command\CleanEmptyDirsCommand __construct" />
     </entry_point>
     <pattern value="\Root\MusicLocal\Service\FileResortService" member="__construct" />
     <pattern value="\Root\MusicLocal\Service\FileResortService" />
@@ -57,5 +63,11 @@
     <pattern value="\MusicResort\Command\RunAllCommand" />
     <pattern value="\MusicResort\Command\RunAllCommand" member="__construct" />
     <pattern value="\MusicResort\Command\RunAllCommand" member="execute" />
+    <pattern value="\MusicResort\Command\ResortMp3Command" member="execute" />
+    <pattern value="\MusicResort\Command\ResortMp3Command" />
+    <pattern value="\MusicResort\Command\ResortMp3Command" member="__construct" />
+    <pattern value="\MusicResort\Command\CleanEmptyDirsCommand" member="execute" />
+    <pattern value="\MusicResort\Command\CleanEmptyDirsCommand" />
+    <pattern value="\MusicResort\Command\CleanEmptyDirsCommand" member="__construct" />
   </component>
 </project>
