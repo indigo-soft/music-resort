@@ -14,13 +14,37 @@ Proposals for improvements (UA): [IMPROVEMENTS_uk](./docs/IMPROVEMENTS_uk.md)
     composer install
     ```
 
-2. #### Make the console file executable (Linux/Mac):
+2. #### Make launcher scripts executable (Linux/Mac/WSL):
 
     ```
     chmod +x bin/console
+    chmod +x music
     ```
 
 ## Usage
+
+- ### Short wrappers (optional)
+
+    ```
+    ./music list
+    ./music music:all <source_directory> [destination_directory] [--dry-run] [--concurrency=<N>]
+    ```
+
+    ```
+    music.bat list
+    music.bat music:all <source_directory> [destination_directory] [--dry-run] [--concurrency=<N>]
+    ```
+
+- ### Composer aliases (optional)
+
+    ```
+    composer music:list
+    composer music:all -- <source_directory> [destination_directory] [--dry-run] [--concurrency=<N>]
+    composer music:resort -- <source_directory> <destination_directory> [--dry-run] [--concurrency=<N>]
+    ```
+
+  Notes:
+    - Use `--` after script name to pass command arguments/options to `bin/console`.
 
 - ### Run all steps (orchestrated)
 
@@ -131,7 +155,7 @@ Proposals for improvements (UA): [IMPROVEMENTS_uk](./docs/IMPROVEMENTS_uk.md)
 
 ## Dependencies
 
-- **PHP 8.4+** — minimum PHP version
+- **PHP 8.5+** — minimum PHP version
 - **symfony/console** — console interface
 - **symfony/finder** — file search
 - **symfony/filesystem** — filesystem operations

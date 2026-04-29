@@ -38,6 +38,9 @@ final class CleanEmptyDirsCommand extends Command
 
     /**
      * @noinspection PhpUnused
+     *
+     * @param InputInterface $input
+     * @param OutputInterface $output
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

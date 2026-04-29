@@ -19,7 +19,7 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
-        "php": ">=8.4",
+        "php": ">=8.5",
         "symfony/console": "^7.3.0",
         "symfony/finder": "^7.3.0",
         "symfony/filesystem": "^7.3.0",
@@ -39,7 +39,10 @@
         "cs": "php-cs-fixer fix --diff --dry-run",
         "fix": "php-cs-fixer fix",
         "stan": "phpstan analyse src --memory-limit=1G",
-        "lint": "php-cs-fixer fix && phpstan analyse src --memory-limit=1G"
+        "lint": "php-cs-fixer fix && phpstan analyse src --memory-limit=1G",
+        "music:list": "php bin/console list",
+        "music:all": "php bin/console music:all",
+        "music:resort": "php bin/console music:resort"
     },
     "config": {
         "optimize-autoloader": true,

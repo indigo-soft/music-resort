@@ -23,8 +23,8 @@ final class FileResortService
 
     public function __construct(
         SymfonyStyle $io,
-        string     $destinationDir,
-        bool       $dryRun,
+        string $destinationDir,
+        bool   $dryRun,
         int|string $artist,
         int|string $title
     )

@@ -98,6 +98,7 @@ final class Mp3DeduplicateService
     }
 
     /**
+     * @param Finder $finder
      * @return array{0:array<int,array>,1:int,2:int}
      */
     private function collectFileMetas(Finder $finder): array
@@ -113,7 +114,10 @@ final class Mp3DeduplicateService
     }
 
     /**
+     * @param SplFileInfo $file
      * @param array<int,array> $files
+     * @param int $processed
+     * @param int $errors
      */
     private function handleFinderFile(SplFileInfo $file, array &$files, int &$processed, int &$errors): void
     {
@@ -164,6 +168,7 @@ final class Mp3DeduplicateService
 
     /**
      * @param array<int,array> $toDelete
+     * @param Filesystem $fs
      */
     private function removeFiles(array $toDelete, Filesystem $fs): int
     {
@@ -188,6 +193,7 @@ final class Mp3DeduplicateService
 
     /**
      * @param array $a @param array $b
+     * @param array $b
      */
     private function compareItems(array $a, array $b): int
     {
@@ -215,6 +221,8 @@ final class Mp3DeduplicateService
     }
 
     /**
+     * @param string $path
+     * @param Filesystem $fs
      * @param array<int,array{0:string,1:string}> $collisions
      */
     private function normalizeSingleFileSuffix(string $path, Filesystem $fs, array &$collisions): int
@@ -234,6 +242,7 @@ final class Mp3DeduplicateService
     }
 
     /**
+     * @param string $path
      * @return array{0:string,1:string,2:string}|null
      */
     private function computeNormalizedPath(string $path): ?array

@@ -1,6 +1,6 @@
 # Music Resort/Deduplicate Tool
 
-Консольні команди для автоматичного сортування музичнх файлів (mp3, flac, m4a) за виконавцями в окремі теки та
+Консольні команди для автоматичного сортування музичних файлів (mp3, flac, m4a) за виконавцями в окремі теки та
 дедублікації аудіо.
 
 Пропозиції щодо покращень: [IMPROVEMENTS_uk](./IMPROVEMENTS_uk.md)
@@ -13,13 +13,37 @@
 composer install
 ```
 
-1. Зробіть консольний файл виконуваним (Linux/Mac):
+2. Зробіть wrapper-скрипти виконуваними (Linux/macOS/WSL):
 
 ```
 chmod +x bin/console
+chmod +x music
 ```
 
 ## Використання
+
+- ### Короткі wrapper-скрипти (опційно)
+
+    ```
+    ./music list
+    ./music music:all <source_directory> [destination_directory] [--dry-run] [--concurrency=<N>]
+    ```
+
+    ```
+    music.bat list
+    music.bat music:all <source_directory> [destination_directory] [--dry-run] [--concurrency=<N>]
+    ```
+
+- ### Composer-аліаси (опційно)
+
+    ```
+    composer music:list
+    composer music:all -- <source_directory> [destination_directory] [--dry-run] [--concurrency=<N>]
+    composer music:resort -- <source_directory> <destination_directory> [--dry-run] [--concurrency=<N>]
+    ```
+
+  Примітки:
+    - Використовуйте `--` після імені script, щоб передати аргументи/опції до `bin/console`.
 
 - ### Запуск усіх кроків (оркестрація)
 
@@ -102,7 +126,7 @@ chmod +x bin/console
 - Файли без інформації про виконавця — пропускаються
 - Конфлікти імен файлів — автоматичне перейменування
 
-## Структура проєкт
+## Структура проєкту
 
 ```
 ├── bin/
@@ -128,7 +152,7 @@ chmod +x bin/console
 
 ## Залежності
 
-- **PHP 8.4+** - мінімальна версія PHP
+- **PHP 8.5+** - мінімальна версія PHP
 - **symfony/console** — консольний інтерфейс
 - **symfony/finder** — пошук файлів
 - **symfony/filesystem** — операції з файловою системою

@@ -108,6 +108,8 @@
       <path value="$PROJECT_DIR$/vendor/psr/simple-cache" />
       <path value="$PROJECT_DIR$/vendor/staabm/side-effects-detector" />
       <path value="$PROJECT_DIR$/vendor/pestphp/pest-plugin-mutate" />
+      <path value="$PROJECT_DIR$/vendor/ergebnis/agent-detector" />
+      <path value="$PROJECT_DIR$/vendor/symfony/polyfill-php84" />
     </include_path>
   </component>
   <component name="PhpInterpreters">
@@ -190,7 +192,7 @@
       </interpreter>
     </phpInfoCache>
   </component>
-  <component name="PhpProjectSharedConfiguration" php_language_level="8.4" />
+  <component name="PhpProjectSharedConfiguration" php_language_level="8.5" />
   <component name="PhpStan">
     <PhpStan_settings>
       <phpstan_by_interpreter asDefaultInterpreter="true" interpreter_id="aa6e1a99-c513-43c0-ab45-a11517e0f0cf" tool_path="/mnt/d/work/www/music.local/vendor/bin/phpstan" timeout="60000" />

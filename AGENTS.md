@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-PHP 8.4+ CLI tool (Symfony Console) for sorting, deduplicating, fixing, and cleaning music files (mp3/flac/m4a).
+PHP 8.5+ CLI tool (Symfony Console) for sorting, deduplicating, fixing, and cleaning music files (mp3/flac/m4a).
 Namespace: `MusicResort\` → `src/`. Entry point: `bin/console`.
 
 ## Developer Workflows
@@ -14,6 +14,8 @@ composer cs                 # check code style (dry-run)
 composer fix                # auto-fix code style
 composer stan               # static analysis (PHPStan level configured in phpstan.neon.dist)
 composer lint               # fix + stan combined
+./music list                # optional short wrapper for bin/console (Linux/macOS/WSL)
+music.bat list              # optional short wrapper for bin/console (Windows cmd)
 ```
 
 No tests exist yet — `tests/` directory is absent. The `composer test` script will fail until tests are added.
@@ -31,11 +33,16 @@ matching service (`src/Service/`).
   `config/app.php` (schema-driven with env-name, type, default).
 - `ConfigService::get('app.debug')` / `ConfigService::get('app.default_lang')` — dot-notation access.
 
+- `RunAllCommand` (`music:all`) is an orchestrator command: it sequentially invokes `music:resort` (only when
+  `destination` is provided), then `music:fix-extensions`, `music:deduplicate`, `music:clean`,
+  `music:clean-empty-dirs` via `Application::find(...)->run(new ArrayInput(...))`.
+
 ### Parallel workers (music:resort only)
 
 `--concurrency=N` makes `ResortMp3Command` split files into batches and spawn child PHP processes (via
 `symfony/process`) that re-invoke `bin/console music:resort --worker-batch=<file> --result-json=<file>`. Options
-`--worker-batch` and `--result-json` are internal/hidden. Results are merged via temp JSON files.
+`--worker-batch` and `--result-json` are internal worker-coordination options used by parent/child process calls and
+result aggregation through temp JSON files.
 
 ### Localization
 
@@ -51,8 +58,10 @@ Placeholders use `:name` syntax (Laravel-style). Locale set at boot via `DEFAULT
 - `dry-run` logic: always check `ConsoleCommandService::isDryRun()` — it combines `--dry-run` flag AND `app.debug`
   config. Never check the option directly in service classes.
 - Translation keys for "would do X" (dry-run) live under `note.*`, actual actions under `info.*`.
-- Folder name sanitization and artist extraction live in `MusicMetadataService` / `Mp3ResortService`; max folder name
-  length = 100 chars.
+- Folder name sanitization lives in `FileResortService::sanitizeFolderName()` (max folder name length = 100 chars);
+  artist extraction from tags + first-artist split is handled by `MusicMetadataService` and `Mp3ResortService`.
+- Resort file discovery in `Mp3ResortService` intentionally includes `*.mp3`, `*.flac`, `*.m4a` and excludes
+  `@eaDir`, `.AppleDouble`, `.AppleDB`.
 - `getid3` (`james-heinrich/getid3`) is the sole metadata library. Tags checked in order: `artist`, `albumartist`,
   `band`, `performer`. Multi-artist separators: `;`, `,`, `/`, `&`, `feat.`, `ft.`, `featuring`.
 
@@ -81,3 +90,8 @@ Placeholders use `:name` syntax (Laravel-style). Locale set at boot via `DEFAULT
 - `src/Helpers/helpers.php` — global `__()` function
 - `lang/en/console.php` — all English UI strings (reference for adding translations)
 - `samples/` — real audio files usable for manual testing
+- `src/Command/RunAllCommand.php` — orchestration pipeline for `music:all` (delegates to existing commands)
+- `src/Service/Mp3ResortService.php` — resort flow + parallel worker helpers (`listFiles()`, `processFilesFromList()`)
+- `src/Service/FileResortService.php` — artist folder/file name sanitization and move/rename collision handling
+- `music` — root wrapper script that proxies all args to `bin/console` (Linux/macOS/WSL)
+- `music.bat` — root wrapper script that proxies all args to `bin/console` (Windows cmd)
