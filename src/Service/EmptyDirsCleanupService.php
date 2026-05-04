@@ -90,8 +90,7 @@ final class EmptyDirsCleanupService
         int $processed,
         int $errors,
         int $removed
-    ): array
-    {
+    ): array {
         return [
             'status' => $status,
             'processed' => $processed,
@@ -153,7 +152,7 @@ final class EmptyDirsCleanupService
     {
         $finder = $this->createBaseFinder();
         // Sort by depth descending to remove the deepest first
-        $finder->sort(function ($a, $b) {
+        $finder->sort(function($a, $b) {
             $da = substr_count($a->getRelativePathname(), DIRECTORY_SEPARATOR);
             $db = substr_count($b->getRelativePathname(), DIRECTORY_SEPARATOR);
 
@@ -173,8 +172,7 @@ final class EmptyDirsCleanupService
     private function processSingleDirectory(
         SplFileInfo $dir,
         Filesystem $filesystem
-    ): array
-    {
+    ): array {
         $directoryPath = $this->resolvePath($dir);
         if ($directoryPath === null) {
             return [0, 1, 0];

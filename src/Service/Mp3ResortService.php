@@ -164,7 +164,7 @@ final class Mp3ResortService
             ->ignoreDotFiles(true)
             ->in($this->sourceDir)
             ->exclude(['@eaDir', '.AppleDouble', '.AppleDB'])
-            ->name(['*.mp3', '*.flac', '*.m4a']);
+            ->name('/\.(mp3|flac|m4a)$/i');
 
         return $finder;
     }

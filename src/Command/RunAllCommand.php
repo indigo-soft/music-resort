@@ -88,11 +88,10 @@ final class RunAllCommand extends Command
     private function runConsoleCommand(
         Application $application,
         SymfonyStyle $io,
-        bool        $dryRun,
+        bool $dryRun,
         OutputInterface $output
-    ): Closure
-    {
-        return function (string $name, array $arguments) use (
+    ): Closure {
+        return function(string $name, array $arguments) use (
             $application,
             $io,
             $dryRun,
@@ -125,11 +124,10 @@ final class RunAllCommand extends Command
     private function runResortIfNeeded(
         ?string $destinationDir,
         string $sourceDir,
-        int    $concurrency,
+        int $concurrency,
         Closure $run,
         SymfonyStyle $io
-    ): int
-    {
+    ): int {
         if ($destinationDir !== null) {
             $args = [
                 'source' => $sourceDir,
@@ -159,8 +157,7 @@ final class RunAllCommand extends Command
         string $commandName,
         string $sourceDir,
         Closure $run
-    ): int
-    {
+    ): int {
         return $run($commandName, [
             'source' => $sourceDir,
         ]);

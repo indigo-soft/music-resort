@@ -27,8 +27,7 @@ final class FileResortService
         bool $dryRun,
         int|string $artist,
         int|string $title
-    )
-    {
+    ) {
         $this->filesystem = new Filesystem();
         $this->io = $io;
         $this->destinationDir = $destinationDir;
@@ -46,7 +45,7 @@ final class FileResortService
         $artistFolder = $this->sanitizeFolderName($this->artist);
         $artistPath = $this->ensureArtistPath($artistFolder);
 
-        $fileName = $this->buildFileName($this->artist, $this->title);
+        $fileName = $this->buildFileName($this->artist, $this->title, $filePath);
         $destinationPath = $this->getUniqueDestinationPath($artistPath . DIRECTORY_SEPARATOR . $fileName);
 
         $this->performMoveOrDryRun($filePath, $destinationPath, $artistFolder, $fileName);
@@ -74,13 +73,20 @@ final class FileResortService
     /**
      * @param string|int $artist
      * @param string|int $title
+     * @param string $filePath
      * @return string
      */
-    private function buildFileName(int|string $artist, int|string $title): string
+    private function buildFileName(int|string $artist, int|string $title, string $filePath): string
     {
         $raw = $artist . ' - ' . $title;
+        $sanitized = $this->sanitizeFileName($raw);
 
-        return $this->sanitizeFileName($raw);
+        $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION) ?: '');
+        if ($extension === '') {
+            return $sanitized;
+        }
+
+        return $sanitized . '.' . $extension;
     }
 
     /**
@@ -160,8 +166,8 @@ final class FileResortService
         $sanitized = trim($sanitized, ' .');
 
         // Limit length (to avoid MAX_PATH issues on Windows with deep paths)
-        if (strlen($sanitized) > self::MAX_PATH_LENGTH) {
-            $sanitized = substr($sanitized, 0, self::MAX_PATH_LENGTH);
+        if (mb_strlen($sanitized, 'UTF-8') > self::MAX_PATH_LENGTH) {
+            $sanitized = mb_substr($sanitized, 0, self::MAX_PATH_LENGTH, 'UTF-8');
         }
 
         // Ensure we have at least some name

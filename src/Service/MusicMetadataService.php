@@ -33,8 +33,7 @@ final class MusicMetadataService
     public function __construct(
         public string $filePath,
         public bool $isExtented = true
-    )
-    {
+    ) {
         $this->metaData = $this->setMetadata($filePath);
         $this->tags = $this->extractTags();
         $this->artist = $this->extractArtist();
