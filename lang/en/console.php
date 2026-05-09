@@ -31,6 +31,7 @@ return [
         'no_title' => 'No title information found in metadata',
         'no_tags' => 'No tags found in metadata',
         'no_id3' => 'No id3v2/id3v1 tags found',
+        'no_genre' => 'Unkown genre',
     ],
 
     'title' => [
