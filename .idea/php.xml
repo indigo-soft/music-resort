@@ -195,7 +195,7 @@
   <component name="PhpProjectSharedConfiguration" php_language_level="8.5" />
   <component name="PhpStan">
     <PhpStan_settings>
-      <phpstan_by_interpreter asDefaultInterpreter="true" interpreter_id="aa6e1a99-c513-43c0-ab45-a11517e0f0cf" tool_path="/mnt/d/work/www/music.local/vendor/bin/phpstan" timeout="60000" />
+      <phpstan_by_interpreter asDefaultInterpreter="true" interpreter_id="aa6e1a99-c513-43c0-ab45-a11517e0f0cf" tool_path="/home/linux/work/music.local/vendor/bin/phpstan" timeout="60000" />
       <PhpStanConfiguration tool_path="$PROJECT_DIR$/vendor/bin/phpstan" />
     </PhpStan_settings>
   </component>
