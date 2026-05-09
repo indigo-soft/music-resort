@@ -29,6 +29,7 @@ final class MusicMetadataService
     private readonly int|string $title;
     private readonly ?int $duration;
     private readonly ?string $format;
+    private ?string $genre;
 
     public function __construct(
         public string $filePath,
@@ -38,6 +39,7 @@ final class MusicMetadataService
         $this->tags = $this->extractTags();
         $this->artist = $this->extractArtist();
         $this->title = $this->extractTitle();
+        $this->genre = $this->extractGenre();
 
         if ($isExtented) {
             $this->duration = $this->extractDuration();
@@ -75,9 +77,14 @@ final class MusicMetadataService
         return strtolower($this->format);
     }
 
+    public function getGenre(): ?string
+    {
+        return ucfirst($this->genre);
+    }
+
     public function getCorrectExtension(): string
     {
-        if (!in_array((string)$this->getFormat(), array_keys(self::EXTENSIONS_MAPPING), true)) {
+        if (!array_key_exists((string)$this->getFormat(), self::EXTENSIONS_MAPPING)) {
             throw new MusicMetadataException('Unknown format!: ' . $this->format);
         }
 
@@ -135,6 +142,18 @@ final class MusicMetadataService
             ['artist', 'albumartist', 'band', 'performer'],
             $this->tags,
             __('console.error.no_artist')
+        );
+    }
+
+    /**
+     * @return string
+     */
+    private function extractGenre(): string
+    {
+        return $this->proccessTags(
+            ['genre'],
+            $this->tags,
+            __('console.error.no_genre')
         );
     }
 

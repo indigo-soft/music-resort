@@ -13,6 +13,7 @@ use Symfony\Component\Finder\Finder;
 
 final class Mp3ResortService
 {
+    public array $genres = [];
     private string $sourceDir;
     private string $destinationDir;
     private SymfonyStyle $io;
@@ -24,7 +25,12 @@ final class Mp3ResortService
      * @param SymfonyStyle $io
      * @param bool $dryRun
      */
-    public function __construct(string $sourceDir, string $destinationDir, SymfonyStyle $io, bool $dryRun = false)
+    public function __construct(
+        string       $sourceDir,
+        string       $destinationDir,
+        SymfonyStyle $io,
+        bool         $dryRun = false
+    )
     {
         $this->sourceDir = $sourceDir;
         $this->destinationDir = $destinationDir;
@@ -208,6 +214,8 @@ final class Mp3ResortService
             $this->io->progressAdvance();
         }
 
+        //arsort($this->genres, SORT_NUMERIC);
+        //dd($this->genres);
         return [$processedCount, $errorCount];
     }
 
@@ -219,8 +227,19 @@ final class Mp3ResortService
     private function processSingleFile(string $filePath): void
     {
         $metaData = new MusicMetadataService($filePath);
+
         $artist = $this->extractFirstArtist($metaData->getArtist());
         $title = $metaData->getTitle();
+        $genre = $metaData->getGenre();
+
+        /*
+        if (array_key_exists($genre, $this->genres)) {
+            $this->genres[$genre]++;
+        } else {
+            $this->genres[$genre] = 1;
+        }
+         */
+
         $fileService = new FileResortService(
             $this->io,
             $this->destinationDir,
