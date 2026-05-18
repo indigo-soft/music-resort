@@ -45,3 +45,6 @@
 # ---- OS ----
 .DS_Store
 Thumbs.db
+
+# IDE — JetBrains
+.idea/
