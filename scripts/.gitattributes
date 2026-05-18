@@ -1,0 +1,21 @@
+# Default: normalize all text files to LF on checkout
+* text=auto eol=lf
+
+# Shell scripts must always use LF — CRLF breaks bash on Linux/macOS
+*.sh text eol=lf
+
+# Windows-specific files may use CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files — never touch line endings
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.mp3 binary
+*.flac binary
+*.m4a binary
+*.zip binary
+*.tar binary
+*.gz binary

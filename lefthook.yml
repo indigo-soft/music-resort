@@ -1,0 +1,37 @@
+# Lefthook Configuration
+# Docs: https://github.com/evilmartians/lefthook
+
+colors: true
+
+# Pre-commit — format and lint only staged PHP files
+pre-commit:
+    parallel: false
+    commands:
+        cs-fix:
+            glob: "src/**/*.php"
+            run: composer fix
+            stage_fixed: true
+            fail_text: "❌ CODE STYLE — php-cs-fixer found issues. Run: composer fix"
+
+# Commit-msg — validate commit message format
+commit-msg:
+    parallel: false
+    commands:
+        commitlint:
+            run: commitlint --edit {1} --verbose
+            fail_text: "❌ COMMIT REJECTED — invalid commit message format.\n   Format: <type>(<scope>): <description>\n   Example: feat(service): add artist extraction\n   See: docs/guides/git-workflow.md"
+
+# Pre-push — full checks before pushing
+pre-push:
+    parallel: false
+    commands:
+        stan:
+            run: composer stan
+            fail_text: "❌ STATIC ANALYSIS — PHPStan found errors. Run: composer stan"
+
+        test:
+            run: composer test
+            fail_text: "❌ TESTS FAILED — fix failing tests before pushing. Run: composer test"
+            skip:
+                - merge
+                - rebase
