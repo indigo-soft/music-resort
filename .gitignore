@@ -26,25 +26,31 @@
 !/samples/C.C. Catch - Strangers by Night.mp3
 !/samples/Bomfunk MC's - Freestyler.mp3
 
-# ---- IDE — JetBrains ----
-.idea/**/workspace.xml
-.idea/**/tasks.xml
-.idea/**/usage.statistics.xml
-.idea/**/dictionaries
-.idea/**/shelf
-.idea/**/aws.xml
-.idea/**/contentModel.xml
-.idea/**/dataSources/
-.idea/**/dataSources.ids
-.idea/**/dataSources.local.xml
-.idea/**/sqlDataSources.xml
-.idea/**/dynamic.xml
-.idea/**/uiDesigner.xml
-.idea/**/dbnavigator.xml
+# ---- IDE — JetBrains (personal/local files) ----
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/usage.statistics.xml
+.idea/shelf/
+.idea/aws.xml
+.idea/contentModel.xml
+.idea/dataSources/
+.idea/dataSources.ids
+.idea/dataSources.local.xml
+.idea/sqlDataSources.xml
+.idea/dynamic.xml
+.idea/uiDesigner.xml
+.idea/dbnavigator.xml
+.idea/dictionaries/
+.idea/commandlinetools/
+.idea/deployment.xml
+.idea/remote-mappings.xml
+.idea/laravel-idea.xml
+.idea/GitCommitMessageStorage.xml
+.idea/phpunit.xml
+.idea/phpspec.xml
+.idea/php-test-framework.xml
+.idea/misc.xml
 
 # ---- OS ----
 .DS_Store
 Thumbs.db
-
-# IDE — JetBrains
-.idea/
