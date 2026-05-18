@@ -9,6 +9,11 @@
 #
 # NOTE: Use `npm run` instead of `pnpm run` to avoid pnpm's ELIFECYCLE
 #       noise on non-zero exit codes.
+#
+# NOTE: release-it and @release-it/conventional-changelog must be installed globally:
+#       npm install -g release-it @release-it/conventional-changelog
+#       This is required because pnpm's isolated linker creates text redirect files
+#       instead of real symlinks on this WSL2 setup, preventing local node resolution.
 
 set -euo pipefail
 
@@ -100,17 +105,17 @@ log_info "🚀 Starting release..."
 if [ "$DRY_RUN" = true ]; then
   log_info "🔎 Dry-run mode — no changes will be made to the repository."
   if [ -n "$RELEASE_TYPE" ]; then
-    npx --yes release-it --dry-run --increment "$RELEASE_TYPE"
+    release-it --dry-run --increment "$RELEASE_TYPE"
   else
-    npx --yes release-it --dry-run
+    release-it --dry-run
   fi
   exit 0
 fi
 
 if [ -n "$RELEASE_TYPE" ]; then
-  npx --yes release-it --increment "$RELEASE_TYPE"
+  release-it --increment "$RELEASE_TYPE"
 else
-  npx --yes release-it
+  release-it
 fi
 
 log_success "Release completed successfully! 🎉"
