@@ -31,6 +31,9 @@
         "node": ">=24.0.0",
         "pnpm": ">=10.0.0"
     },
+    "release-it": {
+        "extends": "./scripts/.release-it.json"
+    },
     "devDependencies": {
         "@commitlint/cli": "^21.0.0",
         "@commitlint/config-conventional": "^21.0.0",
