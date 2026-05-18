@@ -26,7 +26,10 @@
 !/samples/C.C. Catch - Strangers by Night.mp3
 !/samples/Bomfunk MC's - Freestyler.mp3
 
-# ---- IDE — JetBrains (personal/local files) ----
+# ---- IDE — JetBrains ----
+# Tracked (project-level): .idea/.gitignore, modules.xml, *.iml, php.xml,
+#   vcs.xml, inspectionProfiles/
+# Ignored (personal/local):
 .idea/workspace.xml
 .idea/tasks.xml
 .idea/usage.statistics.xml
