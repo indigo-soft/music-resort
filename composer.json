@@ -40,9 +40,9 @@
         "symfony/var-dumper": "^7.3.0"
     },
     "scripts": {
-        "test": "pest -d",
-        "test:unit": "pest -d --group=unit",
-        "test:integration": "pest -d --group=integration",
+        "test": "pest",
+        "test:unit": "pest --testsuite=Unit",
+        "test:integration": "pest --testsuite=Integration",
         "cs": "php-cs-fixer fix --diff --dry-run",
         "fix": "php-cs-fixer fix",
         "stan": "phpstan analyse src --memory-limit=1G",

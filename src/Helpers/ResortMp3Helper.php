@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace MusicResort\Helpers;
 
 use JsonException;
+use MusicResort\Service\FileResortService;
 use MusicResort\Service\Mp3ResortService;
+use MusicResort\Service\MusicMetadataServiceFactory;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Process\Process;
@@ -50,7 +52,7 @@ final class ResortMp3Helper
     private function runWorkerMode(string $workerBatch, ?string $resultJson): int
     {
         $paths = $this->loadBatchPaths($workerBatch);
-        $service = new Mp3ResortService($this->sourceDir, $this->destinationDir, $this->io, $this->dryRun);
+        $service = $this->createResortService();
         $result = $service->processFilesFromList($paths);
 
         if (is_string($resultJson) && $resultJson !== '') {
@@ -69,7 +71,7 @@ final class ResortMp3Helper
      */
     private function runCoordinatorMode(int $concurrency): int
     {
-        $service = new Mp3ResortService($this->sourceDir, $this->destinationDir, $this->io, $this->dryRun);
+        $service = $this->createResortService();
 
         if ($concurrency < 2) {
             $result = $service->resort();
@@ -307,6 +309,21 @@ final class ResortMp3Helper
         }
 
         return array_values(array_filter($decoded, static fn($path) => is_string($path) && $path !== ''));
+    }
+
+    /**
+     * @return Mp3ResortService
+     */
+    private function createResortService(): Mp3ResortService
+    {
+        return new Mp3ResortService(
+            $this->sourceDir,
+            $this->destinationDir,
+            $this->io,
+            $this->dryRun,
+            new MusicMetadataServiceFactory(),
+            new FileResortService($this->io, $this->destinationDir, $this->dryRun)
+        );
     }
 
     /**

@@ -18,34 +18,30 @@ final class FileResortService
     private SymfonyStyle $io;
     private string $destinationDir;
     private bool $dryRun;
-    private int|string $artist;
-    private int|string $title;
 
     public function __construct(
         SymfonyStyle $io,
         string $destinationDir,
-        bool $dryRun,
-        int|string $artist,
-        int|string $title
+        bool $dryRun
     ) {
         $this->filesystem = new Filesystem();
         $this->io = $io;
         $this->destinationDir = $destinationDir;
         $this->dryRun = $dryRun;
-        $this->artist = $artist;
-        $this->title = $title;
     }
 
     /**
      * @param string $filePath
+     * @param int|string $artist
+     * @param int|string $title
      * @return void
      */
-    public function moveToArtistFolder(string $filePath): void
+    public function moveToArtistFolder(string $filePath, int|string $artist, int|string $title): void
     {
-        $artistFolder = $this->sanitizeFolderName($this->artist);
+        $artistFolder = $this->sanitizeFolderName($artist);
         $artistPath = $this->ensureArtistPath($artistFolder);
 
-        $fileName = $this->buildFileName($this->artist, $this->title, $filePath);
+        $fileName = $this->buildFileName($artist, $title, $filePath);
         $destinationPath = $this->getUniqueDestinationPath($artistPath . DIRECTORY_SEPARATOR . $fileName);
 
         $this->performMoveOrDryRun($filePath, $destinationPath, $artistFolder, $fileName);

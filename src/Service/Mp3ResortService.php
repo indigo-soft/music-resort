@@ -18,24 +18,31 @@ final class Mp3ResortService
     private string $destinationDir;
     private SymfonyStyle $io;
     private bool $dryRun;
+    private MusicMetadataServiceFactory $metadataFactory;
+    private FileResortService $fileResortService;
 
     /**
      * @param string $sourceDir
      * @param string $destinationDir
      * @param SymfonyStyle $io
      * @param bool $dryRun
+     * @param MusicMetadataServiceFactory $metadataFactory
+     * @param FileResortService $fileResortService
      */
     public function __construct(
-        string       $sourceDir,
-        string       $destinationDir,
+        string $sourceDir,
+        string $destinationDir,
         SymfonyStyle $io,
-        bool         $dryRun = false
-    )
-    {
+        bool $dryRun,
+        MusicMetadataServiceFactory $metadataFactory,
+        FileResortService $fileResortService
+    ) {
         $this->sourceDir = $sourceDir;
         $this->destinationDir = $destinationDir;
         $this->io = $io;
         $this->dryRun = $dryRun;
+        $this->metadataFactory = $metadataFactory;
+        $this->fileResortService = $fileResortService;
     }
 
     /**
@@ -226,28 +233,12 @@ final class Mp3ResortService
      */
     private function processSingleFile(string $filePath): void
     {
-        $metaData = new MusicMetadataService($filePath);
+        $metaData = $this->metadataFactory->createFor($filePath);
 
         $artist = $this->extractFirstArtist($metaData->getArtist());
         $title = $metaData->getTitle();
-        $genre = $metaData->getGenre();
 
-        /*
-        if (array_key_exists($genre, $this->genres)) {
-            $this->genres[$genre]++;
-        } else {
-            $this->genres[$genre] = 1;
-        }
-         */
-
-        $fileService = new FileResortService(
-            $this->io,
-            $this->destinationDir,
-            $this->dryRun,
-            $artist,
-            $title
-        );
-        $fileService->moveToArtistFolder($filePath);
+        $this->fileResortService->moveToArtistFolder($filePath, $artist, $title);
     }
 
     /**
