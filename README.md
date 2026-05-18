@@ -1,326 +1,147 @@
-# Music Resort/Deduplicate Tool
+# music-resort
 
-Console commands for automatically sorting music files (mp3, flac, m4a) by artists in separate folders and deduplicating
-audio.
+CLI tool for sorting, deduplicating, fixing extensions, and cleaning local music libraries
+(mp3, flac, m4a) — fully offline, no external services required.
 
-Read this in Ukrainian: [README_uk](./docs/README_uk.md)
-Proposals for improvements (UA): [IMPROVEMENTS_uk](./docs/IMPROVEMENTS_uk.md)
+Read in Ukrainian: [docs/uk/README.md](docs/uk/README.md)
+
+---
+
+## Requirements
+
+| Dependency | Version |
+|-----------|---------|
+| PHP | ≥ 8.5 |
+| Composer | any recent |
+| Node.js | ≥ 24 (dev only) |
+| pnpm | ≥ 10 (dev only) |
+
+---
 
 ## Installation
 
-1. #### Install dependencies:
+### Production (use the tool on real files)
 
-    ```
-    composer install
-    ```
+```bash
+git clone https://github.com/indigo-soft/music-resort
+cd music-resort
+composer install --no-dev --optimize-autoloader
+cp .env.example .env
+```
 
-2. #### Make launcher scripts executable (Linux/Mac/WSL):
+### Development
 
-    ```
-    chmod +x bin/console
-    chmod +x music
-    ```
+```bash
+git clone https://github.com/indigo-soft/music-resort
+cd music-resort
+composer install
+pnpm install        # commitlint, lefthook, release-it
+pnpm prepare        # install git hooks
+cp .env.example .env
+```
+
+Edit `.env` for local development:
+
+```dotenv
+DEBUG=true          # forces --dry-run globally — no files are modified
+DEFAULT_LANG=en     # ui locale: en or uk
+```
+
+---
 
 ## Usage
 
-- ### Short wrappers (optional)
+### Run the full pipeline
 
-    ```
-    ./music list
-    ./music music:all <source_directory> [destination_directory] [--dry-run] [--concurrency=<N>]
-    ```
-
-    ```
-    music.bat list
-    music.bat music:all <source_directory> [destination_directory] [--dry-run] [--concurrency=<N>]
-    ```
-
-- ### Composer aliases (optional)
-
-    ```
-    composer music:list
-    composer music:all -- <source_directory> [destination_directory] [--dry-run] [--concurrency=<N>]
-    composer music:resort -- <source_directory> <destination_directory> [--dry-run] [--concurrency=<N>]
-    ```
-
-  Notes:
-    - Use `--` after script name to pass command arguments/options to `bin/console`.
-
-- ### Run all steps (orchestrated)
-
-    ```
-    php bin/console music:all <source_directory> [destination_directory] [--dry-run] [--concurrency=<N>]
-    ```
-
-  Order:
-    1) music:resort (skipped if destination_directory is not provided)
-    2) music:fix-extensions
-    3) music:deduplicate
-    4) music:clean
-    5) music:clean-empty-dirs
-
-- ### Sort music into artist folders
-
-    ```
-    php bin/console music:resort <source_directory> <destination_directory> [--dry-run] [--concurrency=<N>]
-    ```
-
-  Notes:
-    - Use --concurrency to run multiple workers in parallel (Windows-friendly, uses Symfony Process).
-    - Defaults to 1 (sequential).
-
-
-- ### Deduplicate music in a folder
-
-    ```
-    php bin/console music:deduplicate <source_directory> [--dry-run]
-    ```
-
-- ### Fix file extensions based on metadata
-
-    ```
-    php bin/console music:fix-extensions <source_directory> [--dry-run]
-    ```
-
-- ### Clean invalid/corrupted files
-
-    ```
-    php bin/console music:clean <source_directory> [--dry-run]
-    ```
-
-- ### Remove empty folders
-
-    ```
-    php bin/console music:clean-empty-dirs <source_directory> [--dry-run]
-    ```
-
-## Features
-
-### What the command does:
-
-1. **Scans** the source folder for MP3 files
-2. **Reads metadata** of each file
-3. **Extracts artist information** from tags
-4. **Handles multiple artists** — picks the first one
-5. **Creates folders** named after artists
-6. **Moves files** into corresponding folders
-7. **Handles errors** — skips corrupted files
-
-### Simulation mode (--dry-run):
-
-- **Does not change the file system** — no files are moved
-- **Does not create folders** — only simulates their creation
-- **Shows all messages** — same as in normal execution
-- **Displays an action plan** — what will be done with each file
-- **Safe test** — check the result without risk
-
-### Artist handling:
-
-- Looks in tags: `artist`, `albumartist`, `band`, `performer`
-- Splits multiple artists by: `;`, `,`, `/`, `&`, `feat.`, `ft.`, `featuring`
-- Sanitizes folder names (removes invalid characters)
-- Limits folder name length (100 characters)
-
-### Error handling:
-
-- Files without metadata — skipped
-- Corrupted MP3 files — skipped
-- Files without artist information — skipped
-- Filename conflicts — automatically renamed
-
-## Project structure
-
-```
-├── bin/
-│   └── console                         # Console application entry point
-├── config/
-│   └── app.php                         # App configuration (locale, debug)
-├── src/
-│   ├── Command/
-│   │   ├── ResortMp3Command.php        # Resort music by artists
-│   │   ├── DeduplicateMp3Command.php   # Remove duplicate audio files
-│   │   ├── CleanMp3Command.php         # Clean invalid/corrupted files
-│   │   ├── CleanEmptyDirsCommand.php   # Remove empty directories
-│   │   ├── FixExtensionsCommand.php    # Fix file extensions by metadata
-│   │   └── RunAllCommand.php           # Run all steps sequentially
-│   ├── Service/
-│   ├── Exception/
-│   └── Helpers/
-├── lang/
-├── samples/                            # Example folders and files
-├── composer.json                       # Project dependencies
-├── LICENSE.md                          # License
-└── README.md                           # Documentation
+```bash
+php bin/console music:all <source> [destination] [--dry-run] [--concurrency=N]
 ```
 
-## Dependencies
+Pipeline order:
+1. `music:resort` — sort by artist (skipped if no destination)
+2. `music:fix-extensions` — fix extensions from metadata
+3. `music:deduplicate` — remove duplicates
+4. `music:clean` — remove corrupted files
+5. `music:clean-empty-dirs` — remove empty directories
 
-- **PHP 8.5+** — minimum PHP version
-- **symfony/console** — console interface
-- **symfony/finder** — file search
-- **symfony/filesystem** — filesystem operations
+### Individual commands
 
-## Localization
-
-- All messages are localized via the global function `__()` and translation files in the `lang` directory (e.g.,
-  `lang/en/console.php`).
-- Default locale — `en` (see `config/app.php` → `default_lang`).
-- You can change the locale via .env: `DEFAULT_LANG=uk`, or in code:
-  `\MusicResort\Service\LocalizationService::setLocale('uk')`.
-- To add a new language: create the directory `lang/<locale>/` and the translation file `console.php` with the same
-  keys.
-
-Example .env:
-
-```dotenv
-# Force dry-run for all commands
-DEBUG=true
-# CLI interface locale
-DEFAULT_LANG=en
+```bash
+php bin/console music:resort <source> <destination> [--dry-run] [--concurrency=N]
+php bin/console music:fix-extensions <source> [--dry-run]
+php bin/console music:deduplicate <source> [--dry-run]
+php bin/console music:clean <source> [--dry-run]
+php bin/console music:clean-empty-dirs <source> [--dry-run]
 ```
 
-## Example output
+### Short wrappers
 
-### Normal mode:
-
-```
-MP3 File Resorting
-==================
-
- ! [NOTE] Created artist folder: The Beatles
-
- ! [NOTE] Created artist folder: Queen
-
- ! [WARNING] Skipped file corrupted.mp3: No artist information found in metadata
-
- 3/3 [============================] 100%
-
- [OK] MP3 resorting completed!
- [OK] Processed files: 2
- [OK] Skipped files (errors): 1
+```bash
+./music music:all <source> [destination]     # Linux / macOS / WSL
+music.bat music:all <source> [destination]   # Windows cmd
 ```
 
-## Additional capabilities
+### Composer aliases
 
-### View help:
-
-```
-php bin/console music:resort --help
-php bin/console music:deduplicate --help
-php bin/console music:fix-extensions --help
-php bin/console music:clean --help
-php bin/console music:clean-empty-dirs --help
+```bash
+composer music:list
+composer music:all -- <source> [destination] [--dry-run]
+composer music:resort -- <source> <destination> [--dry-run]
 ```
 
-### Simulation mode:
+> Use `--` after the composer script name to pass arguments to `bin/console`.
 
-```
-php bin/console music:resort <source> <destination> --dry-run
-php bin/console music:deduplicate <source> --dry-run
-php bin/console music:fix-extensions --dry-run
-php bin/console music:clean --dry-run
-php bin/console music:clean-empty-dirs --dry-run
-```
+### `--dry-run` mode
 
-### Show version:
+No files are moved, renamed, or deleted. Console output is identical to a real run.
+Always test with `--dry-run` before processing a real library.
 
-```
-php bin/console --version
-```
+Setting `DEBUG=true` in `.env` enables dry-run globally for all commands.
 
-### List available commands:
+---
 
-```
-php bin/console list
-```
+## Key features
 
-## Testing (planned)
+- **Sort by artist** — reads `artist`, `albumartist`, `band`, `performer` tags (in that order)
+- **Multi-artist splitting** — picks the first artist from `;`, `,`, `/`, `&`, `feat.`, `ft.`, `featuring`
+- **Folder name sanitization** — removes invalid characters, limits to 100 characters
+- **Parallel resort** — `--concurrency=N` spawns N worker processes (cross-platform)
+- **Collision handling** — auto-renames on filename conflict
+- **Localization** — EN and UK interface
 
-There are currently no automated tests in this repository. Below is the planned structure and scenarios that may be
-added later.
+---
 
-The project will include a full set of tests for code quality, written with the Pest framework.
+## Testing
 
-### Test structure:
-
-```
-tests/
-├── Unit/                     # Unit tests
-│   └── ResortMp3CommandTest.php
-├── Integration/              # Integration tests
-│   └── ResortMp3CommandIntegrationTest.php
-└── Fixtures/                 # Helper classes for tests
-    └── Mp3TestHelper.php
+```bash
+composer test               # all tests
+composer test:unit          # unit tests only
+composer test:integration   # integration tests (--dry-run on samples/)
 ```
 
-### Running tests:
+See [docs/guides/testing.md](docs/guides/testing.md) for the full testing guide.
 
-1. #### Install development dependencies:
+---
 
-    ```
-    composer install
-    ```
-2. #### Run all tests:
-   ```
-   php vendor/bin/pest
-   ```
+## Documentation
 
-3. #### Run only unit tests:
-    ```
-    php vendor/bin/pest tests/Unit
-    ```
+| Document | Description |
+|----------|-------------|
+| [docs/guides/git-workflow.md](docs/guides/git-workflow.md) | Branch naming, commit format, PR flow |
+| [docs/guides/coding-standards.md](docs/guides/coding-standards.md) | PHP style, linting, forbidden patterns |
+| [docs/guides/deployment.md](docs/guides/deployment.md) | Setup steps for dev and production |
+| [docs/guides/testing.md](docs/guides/testing.md) | Testing strategy, conventions, commands |
+| [docs/architecture/overview.md](docs/architecture/overview.md) | System overview and diagram |
+| [docs/architecture/components.md](docs/architecture/components.md) | Component responsibilities |
+| [docs/architecture/modules.md](docs/architecture/modules.md) | Module boundaries and rules |
+| [docs/adr/INDEX.md](docs/adr/INDEX.md) | Architecture Decision Records |
+| [AGENTS.md](AGENTS.md) | Guide for AI agents working in this repo |
+| [CHANGELOG.md](CHANGELOG.md) | Release history |
+| [ROADMAP.md](ROADMAP.md) | Planned milestones |
+| [SECURITY.md](SECURITY.md) | Security policy |
 
-4. #### Run only integration tests:
+---
 
-   ```
-   php vendor/bin/pest tests/Integration
-   ```
+## License
 
-5. #### Run tests with verbose output:
-
-    ```
-    php vendor/bin/pest --verbose
-    ```
-
-### Test coverage:
-
-**Unit tests:**
-
-- `sanitizeFolderName()` — folder name sanitization
-- `extractArtist()` — artist extraction
-- Handling special characters
-- Handling multiple artists
-- Handling long names
-
-**Integration tests:**
-
-- Full command execution flow
-- Error handling (non-existent folders)
-- Destination folder creation
-- Handling empty folders
-- Handling invalid MP3 files
-- Command configuration
-
-**Test data:**
-
-- Generating valid MP3 files with metadata
-- Testing edge cases
-- Handling Unicode characters
-- Files with different tag formats
-
-### Test configuration:
-
-Tests are configured via `tests/Pest.php`:
-
-- Autoloading through `vendor/autoload.php`
-- Using `PHPUnit\\Framework\\TestCase` for all tests
-- Colored output
-- Support for datasets and functional tests
-- Code coverage for the `src/` directory
-
-## Recommendations
-
-1. **Back up your files** before use
-2. **Check permissions** for destination folders
-3. **Use absolute paths** to avoid errors
-4. **Files with errors** may require manual handling
+[MIT](LICENSE.md)
