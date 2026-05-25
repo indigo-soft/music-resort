@@ -1,6 +1,6 @@
 {
     "name": "music-resort",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "CLI tool for sorting, deduplicating, fixing and cleaning music files (mp3/flac/m4a).",
     "keywords": [
         "music",

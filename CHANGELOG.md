@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/indigo-soft/music-resort/compare/v1.1.0...v1.1.1) (2026-05-25)
+
+### Features
+
+* **config:** add init and start scripts, move release-it and gitmessage to root ([21df03a](https://github.com/indigo-soft/music-resort/commit/21df03abc75f4f5e26be5d88d892fc90f5c9cdd3))
+* **config:** add init and start scripts, move release-it and gitmessage to root ([16a898f](https://github.com/indigo-soft/music-resort/commit/16a898f70aab58a7285767b06072de7b41a57f15))
+
 ## 1.1.0 (2026-05-18)
 
 ### Features
