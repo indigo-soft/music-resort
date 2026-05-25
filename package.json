@@ -20,7 +20,8 @@
     "license": "MIT",
     "author": "github.com/indigo-soft",
     "scripts": {
-        "init": "pnpm exec lefthook install && find scripts -name '*.sh' -exec chmod +x {} +",
+        "start": "bash scripts/start/start.sh",
+        "init": "bash scripts/init/init.sh",
         "release": "bash scripts/release/release.sh",
         "release:dry": "bash scripts/release/release.sh --dry",
         "release:patch": "bash scripts/release/release.sh --type=patch",
@@ -32,11 +33,9 @@
         "pnpm": ">=10.0.0"
     },
     "release-it": {
-        "extends": "./scripts/.release-it.json"
+        "extends": "./.release-it.json"
     },
     "devDependencies": {
-        "@commitlint/cli": "^21.0.0",
-        "@commitlint/config-conventional": "^21.0.0",
         "lefthook": "^2.1.6"
     }
 }

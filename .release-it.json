@@ -16,20 +16,6 @@
         "publish": false,
         "version": true
     },
-    "hooks": {
-        "before:init": [
-            "echo '🔍 Checking repository state...'"
-        ],
-        "after:bump": [
-            "echo '📦 Version bumped to ${version}'"
-        ],
-        "after:git:release": [
-            "echo '🏷️ Git tag created: v${version}'"
-        ],
-        "after:github:release": [
-            "echo '🚀 GitHub Release published!'"
-        ]
-    },
     "plugins": {
         "@release-it/conventional-changelog": {
             "preset": "conventionalcommits",
