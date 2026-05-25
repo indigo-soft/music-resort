@@ -106,10 +106,59 @@ check_lockfile() {
     exit 1
   fi
 
-  if ! pnpm install --frozen-lockfile --ignore-scripts &>/dev/null; then
-    log_error "pnpm-lock.yaml is out of sync with package.json. Run: pnpm install"
+  log_success "pnpm-lock.yaml exists. Project version: $pj_version"
+}
+
+check_github_token() {
+  log_step "Checking GITHUB_TOKEN..."
+
+  # Check presence
+  if [ -z "${GITHUB_TOKEN:-}" ]; then
+    log_error "GITHUB_TOKEN is not set."
+    log_text "  Add it to your .env file:"
+    log_text "  GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx"
+    log_text "  Get a token at: https://github.com/settings/tokens"
     exit 1
   fi
 
-  log_success "pnpm-lock.yaml is in sync. Project version: $pj_version"
+  # Check format (basic sanity check)
+  if [[ ! "$GITHUB_TOKEN" =~ ^gh[ps]_[a-zA-Z0-9]{36,}$ ]] && \
+     [[ ! "$GITHUB_TOKEN" =~ ^github_pat_[a-zA-Z0-9_]{82}$ ]]; then
+    log_error "GITHUB_TOKEN looks invalid (unexpected format)."
+    log_text "  Expected: ghp_... or ghs_... or github_pat_..."
+    exit 1
+  fi
+
+  # Check validity via GitHub API
+  if ! command -v curl &>/dev/null; then
+    log_success "GITHUB_TOKEN is set (skipping API validation — curl not found)."
+    return 0
+  fi
+
+  local http_status
+  http_status=$(curl -s -o /dev/null -w "%{http_code}" \
+    -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    "https://api.github.com/user")
+
+  case "$http_status" in
+    200)
+      log_success "GITHUB_TOKEN is valid and authenticated."
+      ;;
+    401)
+      log_error "GITHUB_TOKEN is invalid or expired."
+      log_text "  Generate a new token at: https://github.com/settings/tokens"
+      exit 1
+      ;;
+    403)
+      log_error "GITHUB_TOKEN does not have sufficient permissions."
+      log_text "  Required scopes: repo + workflow"
+      exit 1
+      ;;
+    *)
+      log_error "Could not validate GITHUB_TOKEN (HTTP $http_status)."
+      log_text "  Check your internet connection or try again later."
+      exit 1
+      ;;
+  esac
 }

@@ -12,8 +12,6 @@
 #
 # NOTE: release-it and @release-it/conventional-changelog must be installed globally:
 #       npm install -g release-it @release-it/conventional-changelog
-#       This is required because pnpm's isolated linker creates text redirect files
-#       instead of real symlinks on this WSL2 setup, preventing local node resolution.
 
 set -euo pipefail
 
@@ -21,7 +19,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 LIBS_DIR="$SCRIPT_DIR/../libs"
 
-# Load shared libraries
 # shellcheck source=../libs/colors.sh
 source "$LIBS_DIR/colors.sh"
 # shellcheck source=../libs/env.sh
@@ -29,9 +26,6 @@ source "$LIBS_DIR/env.sh"
 # shellcheck source=checks.sh
 source "$SCRIPT_DIR/checks.sh"
 
-# -----------------------------
-#  Argument parsing
-# -----------------------------
 RELEASE_TYPE=""
 DRY_RUN=false
 
@@ -69,9 +63,6 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# -----------------------------
-#  Validate RELEASE_TYPE
-# -----------------------------
 if [ -n "$RELEASE_TYPE" ]; then
   case "$RELEASE_TYPE" in
     major|minor|patch) ;;
@@ -82,24 +73,16 @@ if [ -n "$RELEASE_TYPE" ]; then
   esac
 fi
 
-# -----------------------------
-#  Load .env for all modes
-# -----------------------------
 load_env "$ROOT_DIR"
 
-# -----------------------------
-#  Pre-release checks
-# -----------------------------
 check_dependencies
 check_clean
 check_branch
 check_pushed
 check_lockfile
 check_changelog
+check_github_token
 
-# -----------------------------
-#  Run release
-# -----------------------------
 log_info "🚀 Starting release..."
 
 if [ "$DRY_RUN" = true ]; then
