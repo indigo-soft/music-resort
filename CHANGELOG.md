@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.2](https://github.com/indigo-soft/music-resort/compare/v1.1.1...v1.1.2) (2026-05-25)
+
+### Features
+
+* **config:** add github token validation to release script ([cf36316](https://github.com/indigo-soft/music-resort/commit/cf363162c1b1803c9f87a17c06b6c5aeb53c7b69))
+
 ## [1.1.1](https://github.com/indigo-soft/music-resort/compare/v1.1.0...v1.1.1) (2026-05-25)
 
 ### Features
