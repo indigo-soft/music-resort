@@ -25,6 +25,8 @@
     "prefer-stable": true,
     "require": {
         "php": ">=8.5",
+        "ext-pdo": "*",
+        "ext-pdo_sqlite": "*",
         "symfony/console": "^7.3.0",
         "symfony/finder": "^7.3.0",
         "symfony/filesystem": "^7.3.0",
