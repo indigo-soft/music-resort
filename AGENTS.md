@@ -75,14 +75,30 @@ music.bat list                        # Windows cmd
 
 | Command | Description |
 |---------|-------------|
-| `pnpm install` | Install Node.js dev dependencies (commitlint, lefthook, release-it) |
-| `pnpm prepare` | Install lefthook git hooks + make scripts executable |
-| `pnpm release:dry` | Dry-run release — shows what would happen |
-| `pnpm release:patch` | Release a patch version bump |
-| `pnpm release:minor` | Release a minor version bump |
-| `pnpm release:major` | Release a major version bump |
+| `pnpm install`          | Install local Node.js dev dependencies (lefthook)    |
+| `pnpm run init`         | Install lefthook git hooks + make scripts executable |
+| `npm run release:dry`   | Dry-run release — shows what would happen            |
+| `npm run release:patch` | Release a patch version bump                         |
+| `npm run release:minor` | Release a minor version bump                         |
+| `npm run release:major` | Release a major version bump                         |
 
-> ⚠️ `package.json` is not yet present — run the Node.js tooling setup first.
+> ⚠️ Use `npm run` for release commands (not `pnpm run`) to avoid ELIFECYCLE noise.
+
+## Global tools required
+
+Due to pnpm's isolated linker behavior on WSL2, the following tools must be installed
+globally via npm. They are NOT in `devDependencies` — installing them locally via pnpm
+produces text redirect files instead of real symlinks, which Node.js cannot resolve
+in git hook subprocess context.
+
+```bash
+npm install -g commitlint @commitlint/cli @commitlint/config-conventional
+npm install -g release-it @release-it/conventional-changelog
+npm install -g prettier markdownlint-cli2
+```
+
+> ⚠️ This is a WSL2 + pnpm specific workaround. On native Linux or macOS with pnpm,
+> local installation may work correctly.
 
 ## Conventions agents must follow
 
@@ -95,6 +111,13 @@ music.bat list                        # Windows cmd
 - Translation keys for "would do X" (dry-run) live under `note.*`, actual actions under `info.*`.
 - When adding UI strings: always add to both `lang/en/console.php` and `lang/uk/console.php`.
 - `getid3` is the only metadata library — do not introduce alternatives.
+- **AID documents capture AI work** — after a significant AI interaction that produced a
+  meaningful artifact or decision, create an AID in `docs/aid/` using `docs/prompts/aid.md`.
+- **Glossary maintenance** — when adding new concepts, document types, or tooling terms,
+  check `docs/glossary/glossary.md` and add any terms not yet defined there.
+- **Glossary linking in READMEs** — in every `README.md` you create or edit, link the
+  **first occurrence** of each term defined in `docs/glossary/glossary.md`. Leave subsequent
+  occurrences unlinked. Format: `[term](docs/glossary/glossary.md#term-anchor)`.
 
 ### Dependency Injection — mandatory check
 
@@ -207,6 +230,9 @@ All operations are local filesystem reads and writes.
 - Append to `docs/context/decisions.md` after any non-obvious architectural choice.
 - Update `docs/checklists/new-project.md` after completing a setup task.
 - Point out constructor injection violations — never stay silent.
+- Create an AID in `docs/aid/` after any significant AI interaction.
+- Check `docs/glossary/glossary.md` when adding new content — add any missing terms before committing.
+- Link the first occurrence of every glossary term in each README file you create or edit.
 
 **DO NOT:**
 - Add business logic to `Command` classes.
@@ -216,3 +242,5 @@ All operations are local filesystem reads and writes.
 - Introduce a second metadata library alongside `getid3`.
 - Use `--worker-batch` or `--result-json` options directly — they are internal worker flags.
 - Create files outside `src/`, `lang/`, `config/`, `docs/`, `bin/`.
+- Confuse AIR (ADR conflicts) with AID (AI interactions) — they are different document types.
+- Add a term to a README without first checking if it belongs in `docs/glossary/glossary.md`.

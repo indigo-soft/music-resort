@@ -5,6 +5,28 @@
 
 ---
 
+## 2026-05-28 — AID-0001: Documentation Foundation Sprint
+
+**Summary:** Claude wrote all 5 ADRs, rewrote AGENTS.md, and generated the full docs
+foundation (architecture, guides, meta files, Node.js tooling) in a single sprint;
+all output adopted with minor corrections.
+**Full record:** docs/aid/AID-0001-documentation-foundation-sprint.md
+
+---
+
+## 2026-05-28 — Synced docs structure with docs.template
+
+**Changes applied:**
+- `AGENTS.md`: fixed Node.js commands (`pnpm prepare` → `pnpm run init`,
+  `pnpm release:*` → `npm run release:*`); added "Global tools required" section;
+  added Glossary and AID conventions to "Conventions agents must follow" and DO/DO NOT.
+- Created `docs/glossary/glossary.md` — project-specific glossary seeded from docs.template.
+- Created `docs/air/` (README.md + INDEX.md) — Architecture Issue Records directory.
+- Created `docs/aid/` (README.md + INDEX.md + archive/) — AI Interaction Documents directory.
+- Created `docs/checklists/code-review.md`, `release.md`, `new-feature.md` — copied from docs.template.
+
+---
+
 ## 2026-05-15 — Phase 4 project meta files created
 
 **README.md:** Rewritten from scratch using docs.template structure.

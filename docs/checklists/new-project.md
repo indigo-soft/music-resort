@@ -42,6 +42,18 @@
 
 ---
 
+## Phase 6 — Documentation completeness
+
+- [x] **Glossary** — `docs/glossary/glossary.md` seeded with project-specific terms
+- [x] **AIR directory** — `docs/air/` created (README + INDEX)
+- [x] **AID directory** — `docs/aid/` created (README + INDEX + archive/)
+- [x] **code-review.md** — `docs/checklists/code-review.md`
+- [x] **release.md** — `docs/checklists/release.md`
+- [x] **new-feature.md** — `docs/checklists/new-feature.md`
+- [x] **First AID written** — AID-0001: Documentation Foundation Sprint
+
+---
+
 ## Notes
 
 pnpm v11 on WSL2 creates text redirect files instead of real symlinks.
