@@ -12,13 +12,59 @@ use MusicResort\Command\DeduplicateMp3Command;
 use MusicResort\Command\FixExtensionsCommand;
 use MusicResort\Command\ResortMp3Command;
 use MusicResort\Command\RunAllCommand;
+use MusicResort\Database\Migration\DatabaseMigrationService;
+use MusicResort\Database\Repository\AudioProcessingRepository;
+use MusicResort\Logger\FileLoggerService;
 use MusicResort\Service\ConfigService;
 use MusicResort\Service\LocalizationService;
 use Symfony\Component\Console\Application;
 
-// Initialize configuration and localization
-ConfigService::init(dirname(__DIR__));
+// -------------------------------------------------------------------------
+// Bootstrap: configuration & localization
+// -------------------------------------------------------------------------
+
+$projectRoot = dirname(__DIR__);
+
+ConfigService::init($projectRoot);
 LocalizationService::setLocale(ConfigService::get('app.default_lang'));
+
+// -------------------------------------------------------------------------
+// Infrastructure: database
+// -------------------------------------------------------------------------
+
+$rawDbPath = (string) ConfigService::get('app.db_path');
+$dbPath    = str_starts_with($rawDbPath, '/')
+    ? $rawDbPath
+    : $projectRoot . '/' . ltrim($rawDbPath, './');
+
+$pdo = new PDO('sqlite:' . $dbPath);
+$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+$pdo->exec('PRAGMA journal_mode=WAL');
+$pdo->exec('PRAGMA foreign_keys=ON');
+
+(new DatabaseMigrationService($pdo))->migrate();
+
+// -------------------------------------------------------------------------
+// Infrastructure: logger
+// -------------------------------------------------------------------------
+
+$rawLogPath = (string) ConfigService::get('app.log_path');
+$logPath    = str_starts_with($rawLogPath, '/')
+    ? $rawLogPath
+    : $projectRoot . '/' . ltrim($rawLogPath, './');
+
+$logger = new FileLoggerService($logPath);
+
+// -------------------------------------------------------------------------
+// Repositories
+// -------------------------------------------------------------------------
+
+$audioProcessingRepository = new AudioProcessingRepository($pdo);
+
+// -------------------------------------------------------------------------
+// Application
+// -------------------------------------------------------------------------
 
 $application = new Application('Music Resort Tool', '1.0.0');
 $application->add(new ResortMp3Command());
@@ -27,6 +73,7 @@ $application->add(new FixExtensionsCommand());
 $application->add(new CleanMp3Command());
 $application->add(new CleanEmptyDirsCommand());
 $application->add(new RunAllCommand());
+
 try {
     $application->run();
 } catch (Exception $e) {

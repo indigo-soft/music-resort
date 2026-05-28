@@ -17,6 +17,8 @@ export default {
                 'config',
                 'docs',
                 'deps',
+                'db',
+                'logger',
             ],
         ],
 

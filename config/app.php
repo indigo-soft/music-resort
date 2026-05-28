@@ -15,4 +15,18 @@ return [
         'type' => 'string',
         'default' => 'en',
     ],
+    // Path to the SQLite database file.
+    // Relative paths are resolved from the project root in bin/console.
+    'db_path' => [
+        'name' => 'DB_PATH',
+        'type' => 'string',
+        'default' => './db/music.sqlite',
+    ],
+    // Path to the application log file.
+    // Relative paths are resolved from the project root in bin/console.
+    'log_path' => [
+        'name' => 'LOG_PATH',
+        'type' => 'string',
+        'default' => './storage/logs/app.log',
+    ],
 ];

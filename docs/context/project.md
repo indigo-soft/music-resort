@@ -16,8 +16,8 @@
 - **Runtime:** PHP 8.5+
 - **Framework(s):** Symfony Console 7.3
 - **Package manager:** Composer
-- **Database(s):** none
-- **Key services:** none (standalone CLI tool)
+- **Database(s):** SQLite (raw PDO, no ORM — see ADR-0006)
+- **Key services:** FileLoggerService (file-based logging — see ADR-0007)
 
 ## Infrastructure
 
@@ -28,5 +28,5 @@
 ## Team & Process
 
 - **Team size:** 1 (solo)
-- **Commit scopes:** command, service, exception, helpers, lang, config, docs, deps
+- **Commit scopes:** command, service, exception, helpers, lang, config, docs, deps, db, logger
 - **Docs language(s):** en, uk
