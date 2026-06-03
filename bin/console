@@ -14,7 +14,9 @@ use MusicResort\Command\ResortMp3Command;
 use MusicResort\Command\RunAllCommand;
 use MusicResort\Database\Migration\DatabaseMigrationService;
 use MusicResort\Database\Repository\AudioProcessingRepository;
-use MusicResort\Logger\FileLoggerService;
+use MusicResort\Database\Repository\MusicFileMetadataRepository;
+use MusicResort\Database\Repository\ProcessingLogRepository;
+use MusicResort\Logger\DatabaseLoggerService;
 use MusicResort\Service\ConfigService;
 use MusicResort\Service\LocalizationService;
 use Symfony\Component\Console\Application;
@@ -37,30 +39,44 @@ $dbPath    = str_starts_with($rawDbPath, '/')
     ? $rawDbPath
     : $projectRoot . '/' . ltrim($rawDbPath, './');
 
-$pdo = new PDO('sqlite:' . $dbPath);
-$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-$pdo->exec('PRAGMA journal_mode=WAL');
-$pdo->exec('PRAGMA foreign_keys=ON');
+$dbDir = dirname($dbPath);
+if (!is_dir($dbDir)) {
+    mkdir($dbDir, 0755, recursive: true);
+}
 
-(new DatabaseMigrationService($pdo))->migrate();
+try {
+    $pdo = new PDO('sqlite:' . $dbPath);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    $pdo->exec('PRAGMA journal_mode=WAL');
+    $pdo->exec('PRAGMA foreign_keys=ON');
+
+    (new DatabaseMigrationService($pdo, $projectRoot . '/db/migrations'))->migrate();
+
+    $audioProcessingRepository  = new AudioProcessingRepository($pdo);
+    $processingLogRepository    = new ProcessingLogRepository($pdo);
+    $musicFileMetadataRepository = new MusicFileMetadataRepository($pdo);
+} catch (Throwable $e) {
+    fwrite(STDERR, '[music-resort] Database bootstrap failed: ' . $e->getMessage() . PHP_EOL);
+    fwrite(STDERR, 'Check that pdo_sqlite extension is installed: php -m | grep sqlite' . PHP_EOL);
+    exit(1);
+}
 
 // -------------------------------------------------------------------------
 // Infrastructure: logger
+//
+// DatabaseLoggerService is the single log sink for all commands.
+// A UUIDv4 run_id is generated once per process; it groups every log entry
+// from this invocation so you can query a full run with:
+//   SELECT * FROM processing_log WHERE run_id = '<id>';
+//
+// The command name passed here is 'console' (the bootstrap context). Each
+// command will receive its own logger instance — bound to its own name and
+// the same run_id — once command constructors are opened in v1.1.0 DI fix.
 // -------------------------------------------------------------------------
 
-$rawLogPath = (string) ConfigService::get('app.log_path');
-$logPath    = str_starts_with($rawLogPath, '/')
-    ? $rawLogPath
-    : $projectRoot . '/' . ltrim($rawLogPath, './');
-
-$logger = new FileLoggerService($logPath);
-
-// -------------------------------------------------------------------------
-// Repositories
-// -------------------------------------------------------------------------
-
-$audioProcessingRepository = new AudioProcessingRepository($pdo);
+$runId  = DatabaseLoggerService::generateRunId();
+$logger = new DatabaseLoggerService($processingLogRepository, 'console', $runId);
 
 // -------------------------------------------------------------------------
 // Application
@@ -77,5 +93,6 @@ $application->add(new RunAllCommand());
 try {
     $application->run();
 } catch (Exception $e) {
+    $logger->error($e->getMessage(), ['exception' => $e::class]);
     echo $e->getMessage();
 }
