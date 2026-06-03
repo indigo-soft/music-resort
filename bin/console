@@ -38,7 +38,7 @@ LocalizationService::setLocale(ConfigService::get('app.default_lang'));
 // Infrastructure: database path validation
 // -------------------------------------------------------------------------
 
-$rawDbPath = (string) ConfigService::get('app.db_path');
+$rawDbPath = (string)ConfigService::get('app.db_path');
 
 if ($rawDbPath === '') {
     fwrite(STDERR, '[music-resort] DB_PATH is not set in .env' . PHP_EOL);
@@ -66,7 +66,9 @@ try {
     $pdo = new PDO('sqlite:' . $dbPath);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    $pdo->exec('PRAGMA busy_timeout=10000');
     $pdo->exec('PRAGMA journal_mode=WAL');
+    $pdo->exec('PRAGMA synchronous=NORMAL');
     $pdo->exec('PRAGMA foreign_keys=ON');
 
     $audioProcessingRepository   = new AudioProcessingRepository($pdo);
@@ -102,7 +104,7 @@ $migrationService = new DatabaseMigrationService($pdo, $migrationsPath);
 // Override via MIGRATION_PRESERVE_TABLES in .env (comma-separated).
 // -------------------------------------------------------------------------
 
-$rawPreserve    = (string) ConfigService::get('app.migration_preserve_tables');
+$rawPreserve    = (string)ConfigService::get('app.migration_preserve_tables');
 $preserveTables = $rawPreserve !== ''
     ? array_map('trim', explode(',', $rawPreserve))
     : ['migrations', 'processing_log'];
@@ -113,18 +115,23 @@ $preserveTables = $rawPreserve !== ''
 
 $application = new Application('Music Resort Tool', '1.0.0');
 
-$application->add(new MigrateCommand($migrationService, $dbPath));
-$application->add(new MigrateRefreshCommand($migrationService, $dbPath, $preserveTables));
-$application->add(new ResortMp3Command());
-$application->add(new DeduplicateMp3Command());
-$application->add(new FixExtensionsCommand());
-$application->add(new CleanMp3Command());
-$application->add(new CleanEmptyDirsCommand());
-$application->add(new RunAllCommand());
+$application->addCommand(new MigrateCommand($migrationService, $dbPath));
+$application->addCommand(new MigrateRefreshCommand($migrationService, $dbPath, $preserveTables));
+$application->addCommand(new ResortMp3Command());
+$application->addCommand(new DeduplicateMp3Command());
+$application->addCommand(new FixExtensionsCommand());
+$application->addCommand(new CleanMp3Command());
+$application->addCommand(new CleanEmptyDirsCommand());
+$application->addCommand(new RunAllCommand());
 
 try {
     $application->run();
 } catch (Exception $e) {
     $logger->error($e->getMessage(), ['exception' => $e::class]);
     echo $e->getMessage();
+} finally {
+    // Checkpoint and truncate the WAL file so IDE tools (DataGrip, DBeaver) can
+    // connect to the database after the CLI process exits. Without this, the
+    // .sqlite-wal file remains on disk and JDBC SQLite drivers report SQLITE_BUSY.
+    $pdo->exec('PRAGMA wal_checkpoint(TRUNCATE)');
 }
