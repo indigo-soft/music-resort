@@ -1,6 +1,8 @@
 #!/usr/bin/env php
 <?php
 
+declare(strict_types=1);
+
 require_once __DIR__ . '/../vendor/autoload.php';
 if (!function_exists('__')) {
     require_once __DIR__ . '/../src/Helpers/helpers.php';
@@ -10,6 +12,8 @@ use MusicResort\Command\CleanEmptyDirsCommand;
 use MusicResort\Command\CleanMp3Command;
 use MusicResort\Command\DeduplicateMp3Command;
 use MusicResort\Command\FixExtensionsCommand;
+use MusicResort\Command\MigrateCommand;
+use MusicResort\Command\MigrateRefreshCommand;
 use MusicResort\Command\ResortMp3Command;
 use MusicResort\Command\RunAllCommand;
 use MusicResort\Database\Migration\DatabaseMigrationService;
@@ -31,18 +35,32 @@ ConfigService::init($projectRoot);
 LocalizationService::setLocale(ConfigService::get('app.default_lang'));
 
 // -------------------------------------------------------------------------
-// Infrastructure: database
+// Infrastructure: database path validation
 // -------------------------------------------------------------------------
 
 $rawDbPath = (string) ConfigService::get('app.db_path');
-$dbPath    = str_starts_with($rawDbPath, '/')
+
+if ($rawDbPath === '') {
+    fwrite(STDERR, '[music-resort] DB_PATH is not set in .env' . PHP_EOL);
+    fwrite(STDERR, 'Add DB_PATH=./db/database/music.sqlite to your .env file.' . PHP_EOL);
+    exit(1);
+}
+
+$dbPath = str_starts_with($rawDbPath, '/')
     ? $rawDbPath
     : $projectRoot . '/' . ltrim($rawDbPath, './');
 
 $dbDir = dirname($dbPath);
+
 if (!is_dir($dbDir)) {
-    mkdir($dbDir, 0755, recursive: true);
+    fwrite(STDERR, '[music-resort] Database directory does not exist: ' . $dbDir . PHP_EOL);
+    fwrite(STDERR, 'Run `git checkout db/database/.gitkeep` or create the directory manually.' . PHP_EOL);
+    exit(1);
 }
+
+// -------------------------------------------------------------------------
+// Infrastructure: database connection
+// -------------------------------------------------------------------------
 
 try {
     $pdo = new PDO('sqlite:' . $dbPath);
@@ -51,13 +69,11 @@ try {
     $pdo->exec('PRAGMA journal_mode=WAL');
     $pdo->exec('PRAGMA foreign_keys=ON');
 
-    (new DatabaseMigrationService($pdo, $projectRoot . '/db/migrations'))->migrate();
-
-    $audioProcessingRepository  = new AudioProcessingRepository($pdo);
-    $processingLogRepository    = new ProcessingLogRepository($pdo);
+    $audioProcessingRepository   = new AudioProcessingRepository($pdo);
+    $processingLogRepository     = new ProcessingLogRepository($pdo);
     $musicFileMetadataRepository = new MusicFileMetadataRepository($pdo);
 } catch (Throwable $e) {
-    fwrite(STDERR, '[music-resort] Database bootstrap failed: ' . $e->getMessage() . PHP_EOL);
+    fwrite(STDERR, '[music-resort] Database connection failed: ' . $e->getMessage() . PHP_EOL);
     fwrite(STDERR, 'Check that pdo_sqlite extension is installed: php -m | grep sqlite' . PHP_EOL);
     exit(1);
 }
@@ -65,24 +81,40 @@ try {
 // -------------------------------------------------------------------------
 // Infrastructure: logger
 //
-// DatabaseLoggerService is the single log sink for all commands.
-// A UUIDv4 run_id is generated once per process; it groups every log entry
-// from this invocation so you can query a full run with:
-//   SELECT * FROM processing_log WHERE run_id = '<id>';
-//
-// The command name passed here is 'console' (the bootstrap context). Each
-// command will receive its own logger instance — bound to its own name and
-// the same run_id — once command constructors are opened in v1.1.0 DI fix.
+// A UUIDv4 run_id groups all log entries from this invocation.
+// Command-level loggers will be wired per-command in v1.1.0 DI fix.
 // -------------------------------------------------------------------------
 
 $runId  = DatabaseLoggerService::generateRunId();
 $logger = new DatabaseLoggerService($processingLogRepository, 'console', $runId);
 
 // -------------------------------------------------------------------------
+// Infrastructure: migration service
+// -------------------------------------------------------------------------
+
+$migrationsPath   = $projectRoot . '/db/migrations';
+$migrationService = new DatabaseMigrationService($pdo, $migrationsPath);
+
+// -------------------------------------------------------------------------
+// Infrastructure: preserve tables for migrate:refresh
+//
+// Defaults: migrations, processing_log
+// Override via MIGRATION_PRESERVE_TABLES in .env (comma-separated).
+// -------------------------------------------------------------------------
+
+$rawPreserve    = (string) ConfigService::get('app.migration_preserve_tables');
+$preserveTables = $rawPreserve !== ''
+    ? array_map('trim', explode(',', $rawPreserve))
+    : ['migrations', 'processing_log'];
+
+// -------------------------------------------------------------------------
 // Application
 // -------------------------------------------------------------------------
 
 $application = new Application('Music Resort Tool', '1.0.0');
+
+$application->add(new MigrateCommand($migrationService, $dbPath));
+$application->add(new MigrateRefreshCommand($migrationService, $dbPath, $preserveTables));
 $application->add(new ResortMp3Command());
 $application->add(new DeduplicateMp3Command());
 $application->add(new FixExtensionsCommand());
