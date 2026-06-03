@@ -216,6 +216,16 @@ All operations are local filesystem reads and writes.
 
 ## Agent operating guidance
 
+**Before writing any code — mandatory checks:**
+1. Write an implementation plan and confirm it with the user before writing any code.
+2. Review the plan for: deprecated PHP functions, deprecated methods, deprecated Symfony APIs.
+3. For any package considered as a dependency: verify it is not abandoned, deprecated, or stale
+   (no releases in 2+ years, or has a more modern widely-adopted alternative). Reject it if so.
+
+**After completing any task — mandatory post-check:**
+Review the full list of points agreed with the user in the current session.
+Confirm every agreed item was implemented. If anything is missing — complete it before closing.
+
 **Adding a new command — required steps:**
 1. Create `src/Command/MyCommand.php` extending `Symfony\Component\Console\Command\Command` with `#[AsCommand]`.
 2. Create `src/Service/MyService.php` with business logic. Inject all dependencies via constructor.
