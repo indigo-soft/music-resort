@@ -12,7 +12,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
-    name: 'migrate',
+    name: 'migrate:up',
     description: 'Apply pending database migrations',
 )]
 final class MigrateCommand extends Command
