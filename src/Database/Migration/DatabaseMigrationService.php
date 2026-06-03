@@ -14,15 +14,15 @@ use Throwable;
  * Migration files must follow the naming convention:
  *   NNN_description.sql  (e.g. 001_audio_processing.sql)
  *
- * Each file is applied exactly once and recorded in schema_migrations.
- * Safe to call on every boot — already-applied versions are skipped.
+ * Applied migrations are recorded in the `migrations` table (filename as PK).
+ * Each file is applied exactly once. Safe to call on every boot.
  *
  * Adding a new migration: create the next numbered .sql file in db/migrations/.
  * No changes to this class are required.
  *
  * Usage (bin/console):
- *   $migrationService = new DatabaseMigrationService($pdo, $projectRoot . '/db/migrations');
- *   $migrationService->migrate();
+ *   $service = new DatabaseMigrationService($pdo, $projectRoot . '/db/migrations');
+ *   $service->migrate();
  */
 final class DatabaseMigrationService
 {
@@ -31,19 +31,107 @@ final class DatabaseMigrationService
         private readonly string $migrationsPath,
     ) {}
 
-    public function migrate(): void
+    /**
+     * Apply all pending migrations.
+     *
+     * @return list<string> filenames of newly applied migrations
+     */
+    public function migrate(): array
     {
         $this->createMigrationsTable();
 
-        $applied = $this->getAppliedVersions();
+        $applied = $this->getAppliedFilenames();
+        $pending = $this->getPendingFiles($applied);
+        $result  = [];
 
-        foreach ($this->discoverMigrations() as $version => $file) {
-            if (in_array($version, $applied, strict: true)) {
-                continue;
-            }
-
-            $this->applyFile($version, $file);
+        foreach ($pending as $filename => $filepath) {
+            $this->applyFile($filename, $filepath);
+            $result[] = $filename;
         }
+
+        return $result;
+    }
+
+    /**
+     * Return filenames of all applied migrations.
+     *
+     * @return list<string>
+     */
+    public function getApplied(): array
+    {
+        $this->createMigrationsTable();
+
+        return $this->getAppliedFilenames();
+    }
+
+    /**
+     * Return filenames of all pending (not yet applied) migrations.
+     *
+     * @return list<string>
+     */
+    public function getPending(): array
+    {
+        $this->createMigrationsTable();
+
+        return array_keys($this->getPendingFiles($this->getAppliedFilenames()));
+    }
+
+    /**
+     * Verify that write operations are possible on the database.
+     *
+     * @throws RuntimeException if the database is not writable
+     */
+    public function assertWritable(): void
+    {
+        try {
+            $this->pdo->exec('BEGIN IMMEDIATE');
+            $this->pdo->exec('ROLLBACK');
+        } catch (Throwable $e) {
+            throw new RuntimeException('Database is not writable: ' . $e->getMessage(), previous: $e, );
+        }
+    }
+
+    /**
+     * Drop all tables except the ones listed in $preserveTables.
+     * Disables foreign key checks during the operation.
+     *
+     * @param list<string> $preserveTables table names to keep
+     * @return int number of tables dropped
+     */
+    public function dropAllExcept(array $preserveTables): int
+    {
+        $stmt   = $this->pdo->query("SELECT name FROM sqlite_master WHERE type = 'table'");
+        $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        $toDrop = array_filter(
+            $tables,
+            static fn(string $name): bool => !in_array($name, $preserveTables, strict: true),
+        );
+
+        if ($toDrop === []) {
+            return 0;
+        }
+
+        $this->pdo->exec('PRAGMA foreign_keys = OFF');
+
+        try {
+            foreach ($toDrop as $table) {
+                $this->pdo->exec('DROP TABLE IF EXISTS ' . $table);
+            }
+        } finally {
+            $this->pdo->exec('PRAGMA foreign_keys = ON');
+        }
+
+        return count($toDrop);
+    }
+
+    /**
+     * Delete all records from the migrations table (does not drop the table).
+     * Used by migrate:refresh to allow re-applying all migrations.
+     */
+    public function clearMigrations(): void
+    {
+        $this->pdo->exec('DELETE FROM migrations');
     }
 
     // ------------------------------------------------------------------
@@ -51,14 +139,35 @@ final class DatabaseMigrationService
     // ------------------------------------------------------------------
 
     /**
-     * Scan the migrations directory and return [ version => filepath ] sorted ascending.
+     * Scan the migrations directory and return pending files as
+     * [ filename => filepath ] sorted ascending, excluding already applied.
      *
-     * @return array<int, string>
+     * @param list<string> $applied
+     * @return array<string, string>
+     */
+    private function getPendingFiles(array $applied): array
+    {
+        $discovered = $this->discoverMigrations();
+        $pending    = [];
+
+        foreach ($discovered as $filename => $filepath) {
+            if (!in_array($filename, $applied, strict: true)) {
+                $pending[$filename] = $filepath;
+            }
+        }
+
+        return $pending;
+    }
+
+    /**
+     * Scan the migrations directory and return [ filename => filepath ] sorted ascending.
+     *
+     * @return array<string, string>
      */
     private function discoverMigrations(): array
     {
         if (!is_dir($this->migrationsPath)) {
-            throw new RuntimeException(sprintf('Migrations directory not found: %s', $this->migrationsPath), );
+            throw new RuntimeException('Migrations directory not found: ' . $this->migrationsPath, );
         }
 
         $files = glob($this->migrationsPath . '/*.sql');
@@ -71,37 +180,36 @@ final class DatabaseMigrationService
 
         $migrations = [];
 
-        foreach ($files as $file) {
-            $basename = basename($file);
+        foreach ($files as $filepath) {
+            $filename = basename($filepath);
 
-            if (!preg_match('/^(\d+)_/', $basename, $matches)) {
-                throw new RuntimeException(sprintf('Migration filename must start with a numeric prefix (e.g. 001_name.sql): %s', $basename, ), );
+            if (!preg_match('/^\d+_/', $filename)) {
+                throw new RuntimeException('Migration filename must start with a numeric prefix (e.g. 001_name.sql): ' . $filename, );
             }
 
-            $version = (int)$matches[1];
-
-            if (isset($migrations[$version])) {
-                throw new RuntimeException(sprintf('Duplicate migration version %d: %s', $version, $basename), );
+            if (isset($migrations[$filename])) {
+                throw new RuntimeException('Duplicate migration filename: ' . $filename, );
             }
 
-            $migrations[$version] = $file;
+            $migrations[$filename] = $filepath;
         }
 
         return $migrations;
     }
 
     /**
-     * Parse a .sql file into individual statements and execute them in a transaction.
+     * Parse and execute a single .sql file inside a transaction.
+     * Records the filename in the migrations table on success.
      *
-     * @param int $version
-     * @param string $file
+     * @param string $filename
+     * @param string $filepath
      */
-    private function applyFile(int $version, string $file): void
+    private function applyFile(string $filename, string $filepath): void
     {
-        $sql = file_get_contents($file);
+        $sql = file_get_contents($filepath);
 
         if ($sql === false) {
-            throw new RuntimeException(sprintf('Cannot read migration file: %s', $file));
+            throw new RuntimeException('Cannot read migration file: ' . $filepath);
         }
 
         $statements = array_filter(
@@ -116,38 +224,38 @@ final class DatabaseMigrationService
                 $this->pdo->exec($statement);
             }
 
-            $this->recordVersion($version);
+            $this->recordMigration($filename);
             $this->pdo->commit();
         } catch (Throwable $e) {
             $this->pdo->rollBack();
 
-            throw $e;
+            throw new RuntimeException('Migration failed: ' . $filename . ' — ' . $e->getMessage(), previous: $e, );
         }
     }
 
     private function createMigrationsTable(): void
     {
         $this->pdo->exec(
-            "CREATE TABLE IF NOT EXISTS schema_migrations (
-                version    INTEGER PRIMARY KEY,
-                applied_at TEXT    NOT NULL DEFAULT (datetime('now'))
+            "CREATE TABLE IF NOT EXISTS migrations (
+                filename   TEXT PRIMARY KEY,
+                applied_at TEXT NOT NULL DEFAULT (datetime('now'))
             )",
         );
     }
 
     /**
-     * @return int[]
+     * @return list<string>
      */
-    private function getAppliedVersions(): array
+    private function getAppliedFilenames(): array
     {
-        $stmt = $this->pdo->query('SELECT version FROM schema_migrations ORDER BY version');
+        $stmt = $this->pdo->query('SELECT filename FROM migrations ORDER BY filename');
 
-        return array_map(intval(...), $stmt->fetchAll(PDO::FETCH_COLUMN));
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
-    private function recordVersion(int $version): void
+    private function recordMigration(string $filename): void
     {
-        $stmt = $this->pdo->prepare('INSERT INTO schema_migrations (version) VALUES (:v)');
-        $stmt->execute([':v' => $version]);
+        $stmt = $this->pdo->prepare('INSERT INTO migrations (filename) VALUES (:filename)');
+        $stmt->execute([':filename' => $filename]);
     }
 }
