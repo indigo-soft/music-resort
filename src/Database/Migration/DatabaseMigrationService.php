@@ -5,22 +5,30 @@ declare(strict_types=1);
 namespace MusicResort\Database\Migration;
 
 use PDO;
+use RuntimeException;
 use Throwable;
 
 /**
- * Applies versioned DDL migrations to the SQLite database.
+ * Applies versioned SQL migrations from db/migrations/*.sql to the SQLite database.
  *
- * Migrations are numbered sequentially. Each version is applied exactly once
- * and recorded in the schema_migrations table. Safe to call on every boot.
+ * Migration files must follow the naming convention:
+ *   NNN_description.sql  (e.g. 001_audio_processing.sql)
+ *
+ * Each file is applied exactly once and recorded in schema_migrations.
+ * Safe to call on every boot — already-applied versions are skipped.
+ *
+ * Adding a new migration: create the next numbered .sql file in db/migrations/.
+ * No changes to this class are required.
  *
  * Usage (bin/console):
- *   $migrationService = new DatabaseMigrationService($pdo);
+ *   $migrationService = new DatabaseMigrationService($pdo, $projectRoot . '/db/migrations');
  *   $migrationService->migrate();
  */
 final class DatabaseMigrationService
 {
     public function __construct(
         private readonly PDO $pdo,
+        private readonly string $migrationsPath,
     ) {}
 
     public function migrate(): void
@@ -29,83 +37,101 @@ final class DatabaseMigrationService
 
         $applied = $this->getAppliedVersions();
 
-        foreach ($this->getMigrations() as $version => $statements) {
+        foreach ($this->discoverMigrations() as $version => $file) {
             if (in_array($version, $applied, strict: true)) {
                 continue;
             }
 
-            $this->pdo->beginTransaction();
-
-            try {
-                foreach ($statements as $sql) {
-                    $this->pdo->exec($sql);
-                }
-                $this->recordVersion($version);
-                $this->pdo->commit();
-            } catch (Throwable $e) {
-                $this->pdo->rollBack();
-
-                throw $e;
-            }
+            $this->applyFile($version, $file);
         }
-    }
-
-    /**
-     * Returns all migrations as [ version => string[] $statements ].
-     *
-     * Add new migrations at the end only — never modify existing ones.
-     *
-     * @return array<int, string[]>
-     */
-    private function getMigrations(): array
-    {
-        return [
-            1 => $this->migration001AudioProcessing(),
-        ];
-    }
-
-    // ------------------------------------------------------------------
-    // Migration definitions
-    // ------------------------------------------------------------------
-
-    /**
-     * @return string[]
-     */
-    private function migration001AudioProcessing(): array
-    {
-        return [
-            'CREATE TABLE IF NOT EXISTS audio_processing (
-                id             INTEGER PRIMARY KEY AUTOINCREMENT,
-                original_path  TEXT    NOT NULL,
-                processed_path TEXT,
-                status         TEXT    NOT NULL DEFAULT \'pending\',
-                operation      TEXT    NOT NULL,
-                duration_before REAL,
-                duration_after  REAL,
-                size_before    INTEGER,
-                size_after     INTEGER,
-                error_message  TEXT,
-                processed_at   TEXT,
-                created_at     TEXT    NOT NULL DEFAULT (datetime(\'now\'))
-            )',
-            'CREATE INDEX IF NOT EXISTS idx_ap_status
-                ON audio_processing (status)',
-            'CREATE INDEX IF NOT EXISTS idx_ap_original_path
-                ON audio_processing (original_path)',
-        ];
     }
 
     // ------------------------------------------------------------------
     // Internal helpers
     // ------------------------------------------------------------------
 
+    /**
+     * Scan the migrations directory and return [ version => filepath ] sorted ascending.
+     *
+     * @return array<int, string>
+     */
+    private function discoverMigrations(): array
+    {
+        if (!is_dir($this->migrationsPath)) {
+            throw new RuntimeException(sprintf('Migrations directory not found: %s', $this->migrationsPath), );
+        }
+
+        $files = glob($this->migrationsPath . '/*.sql');
+
+        if ($files === false || $files === []) {
+            return [];
+        }
+
+        sort($files);
+
+        $migrations = [];
+
+        foreach ($files as $file) {
+            $basename = basename($file);
+
+            if (!preg_match('/^(\d+)_/', $basename, $matches)) {
+                throw new RuntimeException(sprintf('Migration filename must start with a numeric prefix (e.g. 001_name.sql): %s', $basename, ), );
+            }
+
+            $version = (int)$matches[1];
+
+            if (isset($migrations[$version])) {
+                throw new RuntimeException(sprintf('Duplicate migration version %d: %s', $version, $basename), );
+            }
+
+            $migrations[$version] = $file;
+        }
+
+        return $migrations;
+    }
+
+    /**
+     * Parse a .sql file into individual statements and execute them in a transaction.
+     *
+     * @param int $version
+     * @param string $file
+     */
+    private function applyFile(int $version, string $file): void
+    {
+        $sql = file_get_contents($file);
+
+        if ($sql === false) {
+            throw new RuntimeException(sprintf('Cannot read migration file: %s', $file));
+        }
+
+        $statements = array_filter(
+            array_map('trim', explode(';', $sql)),
+            static fn(string $s): bool => $s !== '',
+        );
+
+        $this->pdo->beginTransaction();
+
+        try {
+            foreach ($statements as $statement) {
+                $this->pdo->exec($statement);
+            }
+
+            $this->recordVersion($version);
+            $this->pdo->commit();
+        } catch (Throwable $e) {
+            $this->pdo->rollBack();
+
+            throw $e;
+        }
+    }
+
     private function createMigrationsTable(): void
     {
         $this->pdo->exec(
-            'CREATE TABLE IF NOT EXISTS schema_migrations (
+            "CREATE TABLE IF NOT EXISTS schema_migrations (
                 version    INTEGER PRIMARY KEY,
-                applied_at TEXT NOT NULL DEFAULT (datetime(\'now\'))
-            )',
+                applied_at TEXT    NOT NULL DEFAULT (datetime('now'))
+            )",
         );
     }
 
@@ -116,10 +142,7 @@ final class DatabaseMigrationService
     {
         $stmt = $this->pdo->query('SELECT version FROM schema_migrations ORDER BY version');
 
-        /** @var list<int> $versions */
-        $versions = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-        return array_map(intval(...), $versions);
+        return array_map(intval(...), $stmt->fetchAll(PDO::FETCH_COLUMN));
     }
 
     private function recordVersion(int $version): void
