@@ -18,6 +18,14 @@ return [
             'description' => 'Видалення порожніх тек у вказаній папці',
             'help' => 'Рекурсивно видаляє порожні теки у вказаній папці. Використовуйте --dry-run для симуляції без змін.',
         ],
+        'migrate' => [
+            'description' => 'Застосувати нові міграції бази даних',
+            'help' => 'Перевіряє підключення до бази даних і застосовує нові .sql міграції з db/migrations/ за порядком. Кожна міграція виконується у транзакції — у разі помилки транзакція відкочується.',
+        ],
+        'migrate_refresh' => [
+            'description' => 'Видалити всі не-системні таблиці та повторно застосувати усі міграції',
+            'help' => 'Видаляє всі таблиці, крім зазначених у MIGRATION_PRESERVE_TABLES (за замовчуванням: migrations, processing_log), очищує журнал міграцій і повторно застосовує всі міграції.',
+        ],
     ],
 
     'arg' => [
@@ -40,6 +48,10 @@ return [
         'no_tags' => 'У метаданих не знайдено тегів',
         'no_id3' => 'У тегах не знайдено id3v2/id3v1',
         'no_genre' => 'Unkown genre',
+        'db_path_not_set' => 'DB_PATH не вказано у .env. Додайте DB_PATH=./db/database/music.sqlite до вашого .env файлу.',
+        'db_dir_not_found' => 'Директорія бази даних не існує: :path',
+        'db_not_writable' => 'База даних недоступна для запису: :error',
+        'migrate_failed' => 'Помилка міграції: :filename — :error',
     ],
 
     'title' => [
@@ -51,6 +63,7 @@ return [
         'file_skipped' => 'Пропущено файл :file: :message',
         'normalize_collisions_found' => 'Знайдено колізії назв після нормалізації: :count',
         'normalize_collision' => 'Колізія: :from конфліктує з існуючим :to (дублікати з різними параметрами).',
+        'migrate_refresh_preserved' => 'Збережені таблиці: :tables',
     ],
 
     'success' => [
@@ -59,6 +72,9 @@ return [
         'processed' => 'Опрацьовано файлів: :processed',
         'errors' => 'Пропущено (помилки): :errors',
         'removed_empty_dirs' => 'Видалено порожніх тек: :count',
+        'migrate_done' => ':count міграці(ю/й) успішно застосовано.',
+        'migrate_none' => 'Нових міграцій немає. База даних актуальна.',
+        'migrate_refresh_done' => 'Оновлення завершено. :count міграці(ю/й) застосовано.',
     ],
 
     'info' => [
@@ -67,6 +83,8 @@ return [
         'deleted' => 'Видалено файл: :file',
         'renamed' => 'Перейменовано: :from -> :to',
         'dir_deleted' => 'Видалено порожню теку: :path',
+        'migrate_applied' => 'Застосовано: :filename',
+        'migrate_refresh_dropped' => 'Видалено :count таблиц(ю/і). Запускаємо міграції…',
     ],
 
     'note' => [

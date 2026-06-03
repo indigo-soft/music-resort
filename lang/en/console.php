@@ -10,6 +10,14 @@ return [
             'description' => 'Deduplicate audio files by artist and title',
             'help' => 'Scans files, compares by Artist+Title, deletes worse duplicates (shorter duration, smaller size, lower bitrate). Then removes _N suffixes; warns on name collisions. Use --dry-run to simulate.',
         ],
+        'migrate' => [
+            'description' => 'Apply pending database migrations',
+            'help' => 'Validates the database connection and applies any pending .sql migrations from db/migrations/ in order. Each migration runs inside a transaction — on failure the transaction is rolled back.',
+        ],
+        'migrate_refresh' => [
+            'description' => 'Drop all non-system tables and re-run all migrations from scratch',
+            'help' => 'Drops all tables except those listed in MIGRATION_PRESERVE_TABLES (default: migrations, processing_log), clears the migrations log, then re-applies all migrations.',
+        ],
     ],
 
     'arg' => [
@@ -32,6 +40,10 @@ return [
         'no_tags' => 'No tags found in metadata',
         'no_id3' => 'No id3v2/id3v1 tags found',
         'no_genre' => 'Unkown genre',
+        'db_path_not_set' => 'DB_PATH is not set in .env. Add DB_PATH=./db/database/music.sqlite to your .env file.',
+        'db_dir_not_found' => 'Database directory does not exist: :path',
+        'db_not_writable' => 'Database is not writable: :error',
+        'migrate_failed' => 'Migration failed: :filename — :error',
     ],
 
     'title' => [
@@ -43,6 +55,7 @@ return [
         'file_skipped' => 'Skipped file :file: :message',
         'normalize_collisions_found' => 'Name normalization collisions found: :count',
         'normalize_collision' => 'Collision: :from conflicts with existing :to (duplicates with different parameters).',
+        'migrate_refresh_preserved' => 'Preserved tables: :tables',
     ],
 
     'success' => [
@@ -51,6 +64,9 @@ return [
         'processed' => 'Processed files: :processed',
         'errors' => 'Skipped (errors): :errors',
         'removed_empty_dirs' => 'Removed empty directories: :count',
+        'migrate_done' => ':count migration(s) applied successfully.',
+        'migrate_none' => 'No pending migrations. Database is up to date.',
+        'migrate_refresh_done' => 'Refresh complete. :count migration(s) applied.',
     ],
 
     'info' => [
@@ -59,6 +75,8 @@ return [
         'deleted' => 'Deleted file: :file',
         'renamed' => 'Renamed: :from -> :to',
         'dir_deleted' => 'Deleted empty directory: :path',
+        'migrate_applied' => 'Applied: :filename',
+        'migrate_refresh_dropped' => 'Dropped :count table(s). Running migrations…',
     ],
 
     'note' => [
