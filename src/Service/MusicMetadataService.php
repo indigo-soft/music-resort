@@ -25,8 +25,9 @@ final class MusicMetadataService
     public readonly ?int $bitrate;
     private readonly array $metaData;
     private readonly array $tags;
-    private readonly int|string $artist;
-    private readonly int|string $title;
+    private readonly ?string $tagSource;
+    private readonly int|string|null $artist;
+    private readonly int|string|null $title;
     private readonly ?int $duration;
     private readonly ?string $format;
     private ?string $genre;
@@ -36,6 +37,7 @@ final class MusicMetadataService
         public bool $isExtented = true
     ) {
         $this->metaData = $this->setMetadata($filePath);
+        $this->tagSource = $this->detectTagSource();
         $this->tags = $this->extractTags();
         $this->artist = $this->extractArtist();
         $this->title = $this->extractTitle();
@@ -82,6 +84,62 @@ final class MusicMetadataService
         return ucfirst($this->genre);
     }
 
+    public function getAlbum(): ?string
+    {
+        $value = $this->proccessTags(['album'], $this->tags);
+
+        return $value !== null ? (string)$value : null;
+    }
+
+    public function getAlbumArtist(): ?string
+    {
+        $value = $this->proccessTags(['albumartist', 'album_artist', 'band'], $this->tags);
+
+        return $value !== null ? (string)$value : null;
+    }
+
+    /**
+     * Track number is kept as a string to preserve "03/12" notation.
+     */
+    public function getTrackNumber(): ?string
+    {
+        $value = $this->proccessTags(['track_number', 'tracknumber', 'track'], $this->tags);
+
+        return $value !== null ? (string)$value : null;
+    }
+
+    public function getYear(): ?int
+    {
+        $value = $this->proccessTags(['year', 'date', 'creation_date'], $this->tags);
+
+        if ($value === null) {
+            return null;
+        }
+
+        // Extract a 4-digit year from values like "2019", "2019-04-01" or "01/04/2019".
+        if (preg_match('/\d{4}/', (string)$value, $matches) === 1) {
+            return (int)$matches[0];
+        }
+
+        return null;
+    }
+
+    public function getComment(): ?string
+    {
+        $value = $this->proccessTags(['comment', 'comments'], $this->tags);
+
+        return $value !== null ? (string)$value : null;
+    }
+
+    /**
+     * Which getID3 tag layer the tags were read from (id3v2/id3v1/quicktime/vorbiscomment),
+     * or null when the file has no recognised tag layer.
+     */
+    public function getTagSource(): ?string
+    {
+        return $this->tagSource;
+    }
+
     public function getCorrectExtension(): string
     {
         if (!array_key_exists((string)$this->getFormat(), self::EXTENSIONS_MAPPING)) {
@@ -113,6 +171,29 @@ final class MusicMetadataService
         }
 
         return $metaData;
+    }
+
+    /**
+     * Detect which getID3 tag layer is present, following the ADR-0003 priority
+     * (id3v2 -> id3v1 -> quicktime -> vorbiscomment). Returns null when no
+     * recognised tag layer exists. Read-only side-channel for inventory; does
+     * not throw, unlike extractTags().
+     *
+     * @return string|null
+     */
+    private function detectTagSource(): ?string
+    {
+        if (!array_key_exists('tags', $this->metaData) || !is_array($this->metaData['tags'])) {
+            return null;
+        }
+
+        return match (true) {
+            array_key_exists('id3v2', $this->metaData['tags']) => 'id3v2',
+            array_key_exists('id3v1', $this->metaData['tags']) => 'id3v1',
+            array_key_exists('quicktime', $this->metaData['tags']) => 'quicktime',
+            array_key_exists('vorbiscomment', $this->metaData['tags']) => 'vorbiscomment',
+            default => null,
+        };
     }
 
     /**
