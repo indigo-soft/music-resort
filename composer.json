@@ -26,20 +26,21 @@
     "require": {
         "php": ">=8.5",
         "ext-pdo": "*",
-        "ext-pdo_sqlite": "*",
-        "symfony/console": "^7.3.0",
-        "symfony/finder": "^7.3.0",
-        "symfony/filesystem": "^7.3.0",
-        "symfony/process": "^7.3.0",
-        "james-heinrich/getid3": "1.9.*",
-        "symfony/string": "^7.3.0",
-        "symfony/translation-contracts": "^3.6.0"
+        "ext-pdo_mysql": "*",
+        "ext-curl": "*",
+        "symfony/console": "^v8.1.0",
+        "symfony/finder": "^v8.1.0",
+        "symfony/filesystem": "^v8.1.0",
+        "symfony/process": "^v8.1.0",
+        "james-heinrich/getid3": "^v1.9.25",
+        "symfony/string": "^v8.1.0",
+        "symfony/translation-contracts": "^v3.7.0"
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3.86.0",
-        "pestphp/pest": "^3.8.0",
-        "phpstan/phpstan": "^2.1.0",
-        "symfony/var-dumper": "^7.3.0"
+        "friendsofphp/php-cs-fixer": "^v3.95.0",
+        "pestphp/pest": "^v4.7.0",
+        "phpstan/phpstan": "^2.2.0",
+        "symfony/var-dumper": "^v8.1.0"
     },
     "scripts": {
         "test": "pest",
