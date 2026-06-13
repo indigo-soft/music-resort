@@ -13,7 +13,7 @@
 
 # ---- Environment ----
 /.env
-
+/todo
 # ---- Build / output ----
 /dest/
 /dist/
