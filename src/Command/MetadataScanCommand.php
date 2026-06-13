@@ -25,6 +25,11 @@ final class MetadataScanCommand extends Command
         parent::__construct();
     }
 
+    /**
+     * @return void
+     *
+     * @noinspection PhpUnused
+     */
     protected function configure(): void
     {
         $this
@@ -33,6 +38,14 @@ final class MetadataScanCommand extends Command
             ->setHelp(__('console.command.metadata_scan.help'));
     }
 
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int
+     *
+     * @noinspection PhpUnusedParameterInspection
+     * @noinspection PhpUnused
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $commandService = new ConsoleCommandService($input, $output);
@@ -51,9 +64,10 @@ final class MetadataScanCommand extends Command
             sourceDir: $sourceDir,
             limit: $limit,
             onProgress: static function(string $event, string $filePath, array $context) use ($output): void {
+                //dump( $output->isVerbose());
                 match ($event) {
                     'scanned' => $output->isVerbose()
-                        ? $output->writeln('  ' . __('console.info.scan_file', ['file' => basename($filePath)]))
+                        ? $output->writeln('  <comment>' . __('console.info.scan_file', ['file' => basename($filePath)])) . '</comment>'
                         : null,
                     'unreadable' => $output->writeln(
                         '  <comment>' . __('console.warning.scan_unreadable', ['file' => basename($filePath)]) . '</comment>',
