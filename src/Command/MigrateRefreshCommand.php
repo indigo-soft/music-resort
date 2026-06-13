@@ -19,12 +19,10 @@ final class MigrateRefreshCommand extends Command
 {
     /**
      * @param DatabaseMigrationService $migrationService
-     * @param string $dbPath
      * @param list<string> $preserveTables tables to keep during refresh
      */
     public function __construct(
         private readonly DatabaseMigrationService $migrationService,
-        private readonly string $dbPath,
         private readonly array $preserveTables,
     ) {
         parent::__construct();
@@ -35,47 +33,28 @@ final class MigrateRefreshCommand extends Command
         $this->setHelp(
             'Drops all tables except system and log tables (configured via '
             . 'MIGRATION_PRESERVE_TABLES in .env), clears the migrations record, '
-            . 'then re-applies all migrations from db/migrations/ in order. '
-            . 'Useful for resetting the schema during development.',
+            . 'then re-applies all migrations from db/migrations/ in order.',
         );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        // 1. Validate DB_PATH is set
-        if ($this->dbPath === '') {
-            $output->writeln('<error>' . __('error.db_path_not_set') . '</error>');
-
-            return Command::FAILURE;
-        }
-
-        // 2. Validate directory exists
-        $dbDir = dirname($this->dbPath);
-
-        if (!is_dir($dbDir)) {
-            $output->writeln(
-                '<error>' . __('error.db_dir_not_found', ['path' => $dbDir]) . '</error>',
-            );
-
-            return Command::FAILURE;
-        }
-
-        // 3. Validate write access
+        // 1. Validate write access
         try {
             $this->migrationService->assertWritable();
         } catch (RuntimeException $e) {
-            $output->writeln('<error>' . __('error.db_not_writable', ['error' => $e->getMessage()]) . '</error>');
+            $output->writeln('<error>' . __('console.error.db_not_writable', ['error' => $e->getMessage()]) . '</error>');
 
             return Command::FAILURE;
         }
 
-        // 4. Show preserved tables
+        // 2. Show preserved tables
         $output->writeln(
-            __('warning.migrate_refresh_preserved', ['tables' => implode(', ', $this->preserveTables)]),
+            __('console.warning.migrate_refresh_preserved', ['tables' => implode(', ', $this->preserveTables)]),
         );
         $output->writeln('');
 
-        // 5. Drop non-preserved tables
+        // 3. Drop non-preserved tables
         try {
             $dropped = $this->migrationService->dropAllExcept($this->preserveTables);
         } catch (RuntimeException $e) {
@@ -84,10 +63,10 @@ final class MigrateRefreshCommand extends Command
             return Command::FAILURE;
         }
 
-        $output->writeln(__('info.migrate_refresh_dropped', ['count' => $dropped]));
+        $output->writeln(__('console.info.migrate_refresh_dropped', ['count' => $dropped]));
         $output->writeln('');
 
-        // 6. Clear migrations log and re-apply
+        // 4. Clear migrations log and re-apply
         $this->migrationService->clearMigrations();
 
         try {
@@ -99,12 +78,12 @@ final class MigrateRefreshCommand extends Command
         }
 
         foreach ($applied as $filename) {
-            $output->writeln('  ' . __('info.migrate_applied', ['filename' => $filename]));
+            $output->writeln('  ' . __('console.info.migrate_applied', ['filename' => $filename]));
         }
 
         $output->writeln('');
         $output->writeln(
-            '<info>' . __('success.migrate_refresh_done', ['count' => count($applied)]) . '</info>',
+            '<info>' . __('console.success.migrate_refresh_done', ['count' => count($applied)]) . '</info>',
         );
 
         return Command::SUCCESS;

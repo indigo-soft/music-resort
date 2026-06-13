@@ -19,7 +19,6 @@ final class MigrateCommand extends Command
 {
     public function __construct(
         private readonly DatabaseMigrationService $migrationService,
-        private readonly string $dbPath,
     ) {
         parent::__construct();
     }
@@ -27,51 +26,33 @@ final class MigrateCommand extends Command
     protected function configure(): void
     {
         $this->setHelp(
-            'Checks the database connection, then applies any pending .sql migrations '
-            . 'from db/migrations/ in order. Each migration runs inside a transaction — '
-            . 'if it fails the transaction is rolled back and the command exits with an error.',
+            'Applies any pending .sql migrations from db/migrations/ in order. '
+            . 'Each migration runs inside a transaction — if it fails the transaction '
+            . 'is rolled back and the command exits with an error.',
         );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        // 1. Validate DB_PATH is set
-        if ($this->dbPath === '') {
-            $output->writeln('<error>' . __('error.db_path_not_set') . '</error>');
-
-            return Command::FAILURE;
-        }
-
-        // 2. Validate directory exists
-        $dbDir = dirname($this->dbPath);
-
-        if (!is_dir($dbDir)) {
-            $output->writeln(
-                '<error>' . __('error.db_dir_not_found', ['path' => $dbDir]) . '</error>',
-            );
-
-            return Command::FAILURE;
-        }
-
-        // 3. Validate write access
+        // 1. Validate write access
         try {
             $this->migrationService->assertWritable();
         } catch (RuntimeException $e) {
-            $output->writeln('<error>' . __('error.db_not_writable', ['error' => $e->getMessage()]) . '</error>');
+            $output->writeln('<error>' . __('console.error.db_not_writable', ['error' => $e->getMessage()]) . '</error>');
 
             return Command::FAILURE;
         }
 
-        // 4. Check pending migrations
+        // 2. Check pending migrations
         $pending = $this->migrationService->getPending();
 
         if ($pending === []) {
-            $output->writeln('<info>' . __('success.migrate_none') . '</info>');
+            $output->writeln('<info>' . __('console.success.migrate_none') . '</info>');
 
             return Command::SUCCESS;
         }
 
-        // 5. Apply migrations
+        // 3. Apply migrations
         try {
             $applied = $this->migrationService->migrate();
         } catch (RuntimeException $e) {
@@ -81,11 +62,11 @@ final class MigrateCommand extends Command
         }
 
         foreach ($applied as $filename) {
-            $output->writeln('  ' . __('info.migrate_applied', ['filename' => $filename]));
+            $output->writeln('  ' . __('console.info.migrate_applied', ['filename' => $filename]));
         }
 
         $output->writeln('');
-        $output->writeln('<info>' . __('success.migrate_done', ['count' => count($applied)]) . '</info>');
+        $output->writeln('<info>' . __('console.success.migrate_done', ['count' => count($applied)]) . '</info>');
 
         return Command::SUCCESS;
     }

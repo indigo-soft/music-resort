@@ -12,7 +12,7 @@ use Throwable;
  * Applies versioned SQL migrations from db/migrations/*.sql to the SQLite database.
  *
  * Migration files must follow the naming convention:
- *   NNN_description.sql  (e.g. 001_audio_processing.sql)
+ *   NNN_description.sql (e.g., 001_audio_processing.sql)
  *
  * Applied migrations are recorded in the `migrations` table (filename as PK).
  * Each file is applied exactly once. Safe to call on every boot.
@@ -24,11 +24,11 @@ use Throwable;
  *   $service = new DatabaseMigrationService($pdo, $projectRoot . '/db/migrations');
  *   $service->migrate();
  */
-final class DatabaseMigrationService
+final readonly class DatabaseMigrationService
 {
     public function __construct(
-        private readonly PDO $pdo,
-        private readonly string $migrationsPath,
+        private PDO $pdo,
+        private string $migrationsPath,
     ) {}
 
     /**
@@ -84,10 +84,10 @@ final class DatabaseMigrationService
     public function assertWritable(): void
     {
         try {
-            $this->pdo->exec('BEGIN IMMEDIATE');
-            $this->pdo->exec('ROLLBACK');
+            $this->pdo->beginTransaction();
+            $this->pdo->rollBack();
         } catch (Throwable $e) {
-            throw new RuntimeException('Database is not writable: ' . $e->getMessage(), previous: $e, );
+            throw new RuntimeException('Database is not writable: ' . $e->getMessage(), previous: $e);
         }
     }
 
@@ -100,7 +100,10 @@ final class DatabaseMigrationService
      */
     public function dropAllExcept(array $preserveTables): int
     {
-        $stmt   = $this->pdo->query("SELECT name FROM sqlite_master WHERE type = 'table'");
+        $stmt   = $this->pdo->query(
+            "SELECT TABLE_NAME FROM information_schema.TABLES
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_TYPE = 'BASE TABLE'",
+        );
         $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
         $toDrop = array_filter(
@@ -112,25 +115,26 @@ final class DatabaseMigrationService
             return 0;
         }
 
-        $this->pdo->exec('PRAGMA foreign_keys = OFF');
+        $this->pdo->exec('SET foreign_key_checks = 0');
 
         try {
             foreach ($toDrop as $table) {
                 $this->pdo->exec('DROP TABLE IF EXISTS ' . $table);
             }
         } finally {
-            $this->pdo->exec('PRAGMA foreign_keys = ON');
+            $this->pdo->exec('SET foreign_key_checks = 1');
         }
 
         return count($toDrop);
     }
 
     /**
-     * Delete all records from the migrations table (does not drop the table).
+     * Delete all records from the migration table (does not drop the table).
      * Used by migrate:refresh to allow re-applying all migrations.
      */
     public function clearMigrations(): void
     {
+        /* @noinspection SqlWithoutWhere */
         $this->pdo->exec('DELETE FROM migrations');
     }
 
@@ -148,15 +152,10 @@ final class DatabaseMigrationService
     private function getPendingFiles(array $applied): array
     {
         $discovered = $this->discoverMigrations();
-        $pending    = [];
 
-        foreach ($discovered as $filename => $filepath) {
-            if (!in_array($filename, $applied, strict: true)) {
-                $pending[$filename] = $filepath;
-            }
-        }
-
-        return $pending;
+        return array_filter($discovered, static function($filename) use ($applied) {
+            return !in_array($filename, $applied, strict: true);
+        }, ARRAY_FILTER_USE_KEY);
     }
 
     /**
@@ -199,7 +198,7 @@ final class DatabaseMigrationService
 
     /**
      * Parse and execute a single .sql file inside a transaction.
-     * Records the filename in the migrations table on success.
+     * Records the filename in the migration table on success.
      *
      * @param string $filename
      * @param string $filepath
@@ -212,23 +211,20 @@ final class DatabaseMigrationService
             throw new RuntimeException('Cannot read migration file: ' . $filepath);
         }
 
-        $statements = array_filter(
-            array_map('trim', explode(';', $sql)),
-            static fn(string $s): bool => $s !== '',
-        );
+        $statements = explode(';', $sql)
+                |> (static fn($x) => array_map('trim', $x))
+                |> (static fn($x) => array_filter($x, static fn(string $s): bool => $s !== '', ));
 
-        $this->pdo->beginTransaction();
-
+        // MariaDB DDL statements (CREATE TABLE, CREATE INDEX, etc.) implicitly commit
+        // any active transaction, making transactional DDL impossible. Running without
+        // an explicit transaction is equivalent in terms of atomicity guarantees.
         try {
             foreach ($statements as $statement) {
                 $this->pdo->exec($statement);
             }
 
             $this->recordMigration($filename);
-            $this->pdo->commit();
         } catch (Throwable $e) {
-            $this->pdo->rollBack();
-
             throw new RuntimeException('Migration failed: ' . $filename . ' — ' . $e->getMessage(), previous: $e, );
         }
     }
@@ -236,10 +232,11 @@ final class DatabaseMigrationService
     private function createMigrationsTable(): void
     {
         $this->pdo->exec(
-            "CREATE TABLE IF NOT EXISTS migrations (
-                filename   TEXT PRIMARY KEY,
-                applied_at TEXT NOT NULL DEFAULT (datetime('now'))
-            )",
+            'CREATE TABLE IF NOT EXISTS migrations (
+                filename   VARCHAR(255) NOT NULL,
+                applied_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (filename)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
         );
     }
 
@@ -248,14 +245,12 @@ final class DatabaseMigrationService
      */
     private function getAppliedFilenames(): array
     {
-        $stmt = $this->pdo->query('SELECT filename FROM migrations ORDER BY filename');
-
-        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+        return $this->pdo->query('SELECT migrations.filename FROM migrations ORDER BY filename')->fetchAll(PDO::FETCH_COLUMN);
     }
 
     private function recordMigration(string $filename): void
     {
         $stmt = $this->pdo->prepare('INSERT INTO migrations (filename) VALUES (:filename)');
-        $stmt->execute([':filename' => $filename]);
+        $stmt->execute(['filename' => $filename]);
     }
 }

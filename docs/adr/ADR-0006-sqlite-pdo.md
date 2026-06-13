@@ -1,62 +1,47 @@
-# ADR-0006: SQLite via Raw PDO as Persistence Layer
+# ADR-0006: MariaDB via Raw PDO as Persistence Layer
 
 ## Status
 
-Accepted
+Accepted (supersedes SQLite via Raw PDO, 2026-05-28)
 
 ## Date
 
-2026-05-28
+2026-06-03
 
 ## Context
 
-The `audio:process` command (ADR-0001) must log the result of every processed file —
-status, operation, durations, file sizes, error messages — so the user can review the
-outcome before running `audio:cleanup-originals`. This data must survive across process
-restarts and be queryable by status.
+The project initially used SQLite for persistence (API cache, logs, metadata inventory).
+SQLite caused a persistent `SQLITE_BUSY` error in IDE tools (DataGrip, DBeaver) regardless
+of journal mode (WAL, DELETE) or WAL checkpoint strategies. The root cause was incompatibility
+between SQLite file locking and the JDBC/native SQLite drivers used by IDEs on WSL2.
 
-The project already follows a minimal-dependency philosophy (ADR-0002, ADR-0004):
-no ORM container, no HTTP framework, manual DI in `bin/console`.
-
-## Alternatives Considered
-
-### Doctrine DBAL
-- Pros: query builder, schema manager, familiar in Symfony projects.
-- Cons: ~40 files; adds a significant dependency for 1–2 tables in a CLI tool.
-
-### Cycle ORM / Eloquent standalone
-- Full ORM with entity mapping and relationships.
-- Cons: heavy, designed for web apps, unnecessary complexity for a CLI with 1–2 tables.
-
-### CSV / JSON file
-- Pros: zero dependencies.
-- Cons: no atomic updates, no concurrent-write safety, not queryable by status.
+The project follows a minimal-dependency philosophy (ADR-0002, ADR-0004): no ORM,
+manual DI in `bin/console`, raw PDO with a Repository pattern.
 
 ## Decision
 
-Use **raw PDO** with a **Repository pattern**. No new Composer packages.
+Switch from SQLite to **MariaDB** via raw PDO. No ORM. Repository pattern unchanged.
 
-- `\PDO` is instantiated once in `bin/console` with `ERRMODE_EXCEPTION` and WAL journal mode.
-- `DatabaseMigrationService` applies versioned DDL migrations on every boot (`CREATE TABLE IF NOT EXISTS`).
-  Migrations are numbered; each is applied once and recorded in `schema_migrations`.
-- `AudioProcessingRepository` encapsulates all SQL. No SQL leaks into service classes.
-- All repository classes receive `\PDO` via constructor — ADR-0002 compliant.
-- DB path is configured via `DB_PATH` env variable (default: `./db/music.sqlite`).
-  Relative paths are resolved from the project root in `bin/console`.
+- DSN: `mysql:host=...;port=...;dbname=...;charset=utf8mb4`
+- PDO options: `ERRMODE_EXCEPTION`, `FETCH_ASSOC`, `MYSQL_ATTR_INIT_COMMAND` for charset
+- Connection credentials: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` in `.env`
+- `DatabaseMigrationService` applies versioned `.sql` files from `db/migrations/`
+- All repositories receive `\PDO` via constructor — ADR-0002 compliant
 
 ## Consequences
 
 ### Positive
-- Zero new Composer dependencies — PDO ships with PHP.
-- Every repository is trivially testable: inject `new PDO('sqlite::memory:')` in tests.
-- Full SQL control without abstraction limits.
-- WAL mode enables safe concurrent reads from worker processes (ADR-0005).
+- Full IDE compatibility (DataGrip, DBeaver, TablePlus)
+- No file-locking issues
+- Zero new Composer packages — `ext-pdo_mysql` ships with PHP
+- utf8mb4 collation handles all Unicode music metadata correctly
 
 ### Negative
-- Schema migrations are hand-written SQL — no auto-generation.
-- No query builder: complex queries require careful string construction.
+- Requires a running MariaDB server (local or remote)
+- Migration SQL syntax differs from SQLite (AUTO_INCREMENT, CURRENT_TIMESTAMP, ON DUPLICATE KEY UPDATE)
+- `db/database/` directory and SQLite file removed from the project
 
 ### Neutral
-- If the number of tables or query complexity grows significantly, introducing Doctrine DBAL
-  can be done via a separate ADR without breaking the Repository interface.
-- The `db/` directory is already present in the repository (gitignored content).
+- Repository interfaces unchanged — only SQL internals updated
+- `db/migrations/*.sql` files remain the single source of truth for schema
+- If MariaDB server is unavailable, bootstrap exits with a clear error message
