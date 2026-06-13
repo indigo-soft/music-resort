@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.2.0](https://github.com/indigo-soft/music-resort/compare/v1.1.2...v1.2.0) (2026-06-13)
+
+### Features
+
+* **command:** add metadata:enrich command ([6be29ed](https://github.com/indigo-soft/music-resort/commit/6be29edc493e539f2fa0644d7563dceffa5fdc8b))
+* **command:** add metadata:scan command ([405d327](https://github.com/indigo-soft/music-resort/commit/405d3276dba66310d4e5a6d93efd8a89a3e7aeae))
+* **command:** add migrate and migrate:refresh commands ([7e55077](https://github.com/indigo-soft/music-resort/commit/7e550776b22512bc5d105a1015012565257348c3))
+* **command:** rename migrate to migrate:up for proper namespace grouping ([9908576](https://github.com/indigo-soft/music-resort/commit/9908576b5fd5e8015451fb33a32222f72bf7527a))
+* **config:** add Last.fm API settings ([e8e94eb](https://github.com/indigo-soft/music-resort/commit/e8e94ebffc2a052d179baeb0f198d5617b9dc45e))
+* **config:** update .env.example with database and Last.fm variables ([83f6fec](https://github.com/indigo-soft/music-resort/commit/83f6feca6bac8fdd0fb2d3e523a8459b68e153e8))
+* **db:** add lastfm_artist_tags migration ([ab0b309](https://github.com/indigo-soft/music-resort/commit/ab0b30975fa3f05e65150650ede765f7f20024d1))
+* **db:** migrate from SQLite to MariaDB; fix DDL transaction wrapping ([cf1ccb3](https://github.com/indigo-soft/music-resort/commit/cf1ccb3bf70bf0bc19d388fa271c2ffdd172477a))
+* **db:** migrate sql files to db/migrations/ as separate sql files ([f2edbb8](https://github.com/indigo-soft/music-resort/commit/f2edbb8d991ed68db6e86f248863963ef2fd01b1))
+* **db:** move database file path to db/database/music.sqlite ([0e4040f](https://github.com/indigo-soft/music-resort/commit/0e4040f8fcd459260ea245b9cb608bb2690eb0c1))
+* **db:** wire migrate commands in console, remove auto-migration from bootstrap ([c16dad6](https://github.com/indigo-soft/music-resort/commit/c16dad6952e0096bf54df9b574b468f97de9d5e7))
+* **deps:** add ext-curl to composer.json require ([be2042b](https://github.com/indigo-soft/music-resort/commit/be2042b873051c149c16a298eb5fcd7b3928cd8e))
+* **lang:** add metadata:enrich and metadata:scan translation keys ([ed921ff](https://github.com/indigo-soft/music-resort/commit/ed921ffa9b04ef36c165cb7336a275accb31b6f0))
+* **lang:** add migration command translations and MIGRATION_PRESERVE_TABLES env ([110c752](https://github.com/indigo-soft/music-resort/commit/110c752faca6c68577471c6b9ea6a05287f8806d))
+* **service:** add Last.fm enrichment pipeline ([fd0affd](https://github.com/indigo-soft/music-resort/commit/fd0affd8b761599710e7d0ec4c12bc3f02d5c9c7))
+* **service:** add MetadataScanService for collection inventory ([c3aa4bf](https://github.com/indigo-soft/music-resort/commit/c3aa4bf3da171ce8fcf71db253bb8ac0c0af482a))
+* **service:** extend MusicMetadataService with inventory getters and detectTagSource ([92f0217](https://github.com/indigo-soft/music-resort/commit/92f02173deacf6aada28cfc6b40535b658eaaccb))
+
+### Bug Fixes
+
+* **config:** require ext-pdo and ext-pdo_sqlite extensions ([5c034d3](https://github.com/indigo-soft/music-resort/commit/5c034d3a6531ac5f99fcaa983354e9e17f08eebf))
+* **db:** checkpoint wal on exit to allow ide connections after cli process ends ([e24db85](https://github.com/indigo-soft/music-resort/commit/e24db857179e142bf22f7571ebe96609f4a6330e))
+* **db:** switch journal mode from wal to delete for ide compatibility ([1852aa8](https://github.com/indigo-soft/music-resort/commit/1852aa8f2b751a2226d7b60a25f431a2db33d778))
+
 ## [1.1.2](https://github.com/indigo-soft/music-resort/compare/v1.1.1...v1.1.2) (2026-05-25)
 
 ### Features
