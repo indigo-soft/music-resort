@@ -152,6 +152,19 @@ All `new SomeService(...)` calls — only in `bin/console`. Never inside other s
 - Follow `docs/guides/naming-conventions.md`.
 - Folder name sanitization max length: 100 characters (`FileResortService::sanitizeFolderName()`).
 
+### PHP 8.5+ features in active use
+
+The project requires PHP 8.5+. The following modern features are used and must not
+be flagged as invalid, deprecated, or unsupported:
+
+- Pipe operator `|>` — used in service and migration code
+- `final readonly class` — preferred for all service classes
+- Constructor property promotion with `readonly`
+- `array_is_list()`, `str_starts_with()`, `str_contains()`, `match` expressions
+- Named arguments, nullsafe operator `?->`, first-class callable syntax `trim(...)`
+
+Before flagging any PHP syntax as invalid — verify against PHP 8.5 docs, not older versions.
+
 ### Commits and branches
 - Follow Conventional Commits: `<type>(<scope>): <description>`.
 - Valid scopes: `command`, `service`, `exception`, `helpers`, `lang`, `config`, `docs`, `deps`.
@@ -211,8 +224,7 @@ Internal options `--worker-batch` and `--result-json` are worker-coordination on
 See [ADR-0005](docs/adr/ADR-0005-parallel-processing-child-processes.md).
 
 ### No external services
-This project has no database, no HTTP API, no queue, and no cloud service dependencies.
-All operations are local filesystem reads and writes.
+This project uses MariaDB as DB і Last.fm HTTP API. Most of the operations are local filesystem reads and writes.
 
 ## Agent operating guidance
 
@@ -221,6 +233,7 @@ All operations are local filesystem reads and writes.
 2. Review the plan for: deprecated PHP functions, deprecated methods, deprecated Symfony APIs.
 3. For any package considered as a dependency: verify it is not abandoned, deprecated, or stale
    (no releases in 2+ years, or has a more modern widely-adopted alternative). Reject it if so.
+4. Verify PHP syntax against PHP 8.5 docs specifically — not general or older PHP knowledge.
 
 **After completing any task — mandatory post-check:**
 Review the full list of points agreed with the user in the current session.
